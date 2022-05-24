@@ -1,0 +1,148 @@
+---
+title: "Exp2"
+author: "Ralitsa Kostova"
+date: "22/05/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(apaTables)
+```
+
+### Binary data
+
+```{r binary, echo = FALSE}
+colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
+# Load the binary data (1 file)
+bi_dat <- read_csv('data_exp_86605-v11_questionnaire-qjpk.csv') %>%
+  select(12,28, 29) 
+# Change the column names so we can work with them
+colnames(bi_dat) <- c('id', 'question','response') 
+bi_dat$response <- as.numeric(bi_dat$response) 
+# create some new columns with categories of type of question
+bi_dat2 <- bi_dat %>%
+  mutate(response = as.numeric(response)) %>%
+  na.omit() %>%
+  filter(response < 5) %>%
+  mutate(Type_of_question = case_when(question == "liking_art_exhibition-quantised" | question == "liking_family_issue-quantised" | question == "liking_pub-quantised" | question == "liking_walk-quantised" ~ 'warmth', 
+                                      question == "liking_driving_car-quantised" | question == "liking_job_preparation-quantised" | question == "liking_fixing_computer-quantised" | question == "liking_essay-quantised" ~ 'competence'))
+
+# get counts of each response type (1,2,3) for each question type 
+# And plot the results
+bi_dat2 %>% group_by(Type_of_question) %>% count(response) %>%
+  mutate(sum_n = sum(n), perc = 100*(n/sum_n),
+         Mimick = case_when(response == '1' ~ 'Motor',
+                               response == '2' ~ 'Choice',
+                               response == '3' ~ 'Control')) %>%
+  
+  ggplot(aes(x = Type_of_question, y = perc, fill = Mimick)) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(values = colors_a) +
+  labs(x = 'Question category', y = 'Percent chosen') +
+  ggtitle('Binary questions. Percentage of times each mimicker was chosen') +
+  theme_minimal()
+
+dat3 <- bi_dat2 %>% group_by(question) %>% count(response)
+  
+tab <- bi_dat2 %>% group_by(Type_of_question) %>% count(response) %>%
+  mutate(sum_n = sum(n), perc = 100*(n/sum_n),
+         Mimick = case_when(response == '1' ~ 'Motor',
+                               response == '2' ~ 'Choice',
+                               response == '3' ~ 'Control')) 
+
+
+```
+
+
+Average percentage per condition. 
+
+```{r}
+apa.1way.table(data =tab, iv = Mimick, dv = perc)
+```
+
+
+### Ratings data
+
+```{r response, echo = FALSE}
+# get all data files related to ratings questions 
+library(plyr)
+temp <- list.files(pattern=c('.csv'))
+pattern <- c('wvjl','zmp1', 'vf6w', '9i2z','e3lq','omxu')
+pattern1 <- paste(pattern, collapse="|") # "ll|lo|hl"
+match = grepl(temp, pattern=pattern1) # returns TRUE
+dat_rating = ldply(temp[match], read_csv, col_names = TRUE)
+detach(package:plyr)
+
+# select only columns of interest and rename them to ease usage
+dat_rating2 <- dat_rating %>% 
+  select(12,28,29) 
+colnames(dat_rating2) <- c('id','question','response')
+
+# clean responses and delete double rows
+dat_rating3 <- dat_rating2 %>%
+  filter(response < 10) %>%
+  filter(str_detect(question, "quantised")) 
+
+# group the data by type of question 
+warmth_k = c('friendly', 'similarity', 'attractiveness')
+comp_k = c('competent', 'art_knowledge', 'rational')
+w_k <- paste(warmth_k, collapse="|") # "ll|lo|hl"
+grouped_data <- dat_rating3 %>%
+  mutate(Type_of_question = ifelse(str_detect(question, w_k),'warmth','competence'),
+         Mimicker = ifelse(str_detect(question, '1'), 'Choice',
+                             ifelse(str_detect(question, '2'), 'Motor',
+                                    ifelse(str_detect(question, '3'),'Control', 'Baseline'))))
+# Pointplot of means only
+grouped_data %>%
+group_by(Type_of_question, Mimicker) %>%
+  mutate(mean_r = mean(response)) %>%
+  ggplot(aes(x = Mimicker, y = mean_r, color = Type_of_question))+
+  geom_point(size = 4) +
+  labs(title = 'Means for competence or warmth for each mimick type',y = 'Mean response') +
+  scale_color_manual(values = colors_a[1:2]) +
+  theme_minimal()
+
+# Boxplot
+ggplot(grouped_data, aes(x = Mimicker, y = response, fill = Type_of_question))+
+  geom_boxplot() +
+  scale_fill_manual(values = colors_a[1:2]) +
+  labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type') +
+  theme_minimal()
+  
+
+```
+
+### Rapport questions
+
+```{r rapport, echo = FALSE}
+library(plyr)
+temp <- list.files(pattern=c('.csv'))
+pattern <- c('sacs','i9pw', '5q1d')
+pattern1 <- paste(pattern, collapse="|") # "ll|lo|hl"
+match = grepl(temp, pattern=pattern1) # returns TRUE
+dat_rapport = ldply(temp[match], read_csv, col_names = TRUE)
+detach(package:plyr)
+dat_rapport2 = dat_rapport %>%
+  select(12,28,29)
+colnames(dat_rapport2) <- c('id', 'question', 'response')
+
+dat_rapport2 <- dat_rapport2 %>%
+  filter(response < 101) %>%
+  mutate(Mimicker = ifelse(str_detect(question, '1'), 'Motor',
+                             ifelse(str_detect(question,'2'), 'Choice',
+                                    ifelse(str_detect(question,'3'), 'Control', '0'))),
+         Type_of_question = ifelse(str_detect(question, 'understanding'), 'understanding',
+                                   ifelse(str_detect(question, 'connection'), 'connection',
+                                          ifelse(str_detect(question, 'established'), 'established', 0))))
+
+dat_rapport2 %>% 
+  ggplot(aes(x = Mimicker, y = response, fill = Type_of_question)) +
+  geom_boxplot() +
+  scale_fill_manual(values=colors_a) +
+  labs(y = 'Response', title = 'Means for rapport for each mimick type') +
+  theme_minimal()
+
+```
+
