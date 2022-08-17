@@ -19,6 +19,9 @@ exclude = read_csv('exclude.csv', col_names = 'id')
 path_data = 'C:/Users/ralitsaa/OneDrive - University of Glasgow/Work/Paula/Exp2Data'
 
 
+
+
+
 # Binary (3) ----------------------------
 pattern=c('qjpk','*.csv')
 dat_quest11 <- read_data(pattern)
@@ -88,7 +91,7 @@ dat_affect2 <- dat_affect %>%
 write.csv(dat_affect2, 'dat_affect.csv')
 
 
-# attributes/affiliation -----------------------
+# Attributes/affiliation -----------------------
 # questions: is there a difference in social perception/specific attributes between blocks?
 # # Affiliation questions 1 - qxva, Affiliation questions 2 - 8s8b, Affiliation questions 3 - ftmy
 
@@ -97,7 +100,7 @@ pattern <- c('qxva','8s8b', 'ftmy')
 dat_affil <- read_data(pattern)
 
 dat_affil2 <- dat_affil %>%
-  dplyr::select(Participant_Public_ID, Task_Name, Response) %>%
+  dplyr::select(Participant_Public_ID, Task_Name, Response, Question_Key) %>%
   mutate(response = as.numeric(Response)) %>%
   filter(response < 200)
 write.csv(dat_affil2, 'dat_affil.csv')
