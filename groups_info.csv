@@ -1,0 +1,7 @@
+"","group","first","second","conf1","conf2","conf3","third"
+"1",1,"motor","choice","A","B","C","control"
+"2",2,"motor","choice","L","A","M","control"
+"3",3,"motor","choice","M","L","A","control"
+"4",4,"choice","motor","A","M","L","control"
+"5",5,"choice","motor","L","A","M","control"
+"6",6,"choice","motor","M","L","A","control"

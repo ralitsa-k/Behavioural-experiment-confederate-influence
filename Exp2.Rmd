@@ -9,9 +9,27 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(apaTables)
+library(pwr)
+library(WebPower)
 ```
 
-### Binary data
+### Binary data and Rating questions power analysis 
+
+```{r}
+# Using the results from the logistic regression of hypothesis 1 
+# probability of selecting an agreeing confederate = 0.72, 
+# probability of selecting a disagreeing confederate = 0.26
+wp.logistic(n = NULL, p0 = 0.72, p1 = 0.26, alpha = 0.05, power = 0.8, alternative = c("two.sided"), family = c("Bernoulli"))
+# We will need 40 total samples to find similar results 
+
+# with power 0.9 , n = 53
+# with power 0.8 , n = 40
+
+# Based on rating questions 
+pwr.t.test(n = NULL, d = 0.64, 0.05, 0.8)
+# N = 40
+```
+
 
 ```{r binary, echo = FALSE}
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
@@ -44,8 +62,9 @@ bi_dat2 %>% group_by(Type_of_question) %>% count(response) %>%
   ggtitle('Binary questions. Percentage of times each mimicker was chosen') +
   theme_minimal()
 
-dat3 <- bi_dat2 %>% group_by(question) %>% count(response)
-  
+chisq.test(bi_dat2$Type_of_question,bi_dat2$response)
+table(bi_dat2$Type_of_question,bi_dat2$response)
+
 tab <- bi_dat2 %>% group_by(Type_of_question) %>% count(response) %>%
   mutate(sum_n = sum(n), perc = 100*(n/sum_n),
          Mimick = case_when(response == '1' ~ 'Motor',
