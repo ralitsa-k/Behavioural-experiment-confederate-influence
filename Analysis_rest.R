@@ -2,6 +2,7 @@
 library(tidyverse)
 library(rstatix)
 detach(package:plyr)
+library(lme4)
 
 `%!in%` = Negate(`%in%`)
 
@@ -119,6 +120,7 @@ pwc3
 
 #   Maze Game --------------------------------
 
+# first get the groups ready (aka which confederate was what type of mimicking)
 groups_maze = groups %>%
   select(id, contains('conf')) 
 colnames(groups_maze) = c('id','first','second','third')
@@ -128,11 +130,25 @@ groups_maze2 = groups_maze %>%
   full_join(groups_long) %>%
   select(id, conf, type)
 
-dat_maze <- read_csv('dat_maze.csv') %>%
+# read in the maze data (produced by load_data.R)
+dat_maze1 <- read_csv('dat_maze.csv') %>%
   filter(Screen_Name %in% c('ChooseDoor', 'Help')) %>%
   pivot_wider(names_from = Screen_Name, values_from = Response) %>%
-  filter(Participant_Public_ID != 'ucjf5it7') 
+  filter(Participant_Public_ID != 'ucjf5it7')
 
+
+# Fix the one participant with 2 results 
+dat_maze_idd = dat_maze1 %>%
+  filter(Participant_Public_ID == 'ucjf5it7') %>%
+filter(X1 < 264)
+
+dat_maze = dat_maze1 %>%
+  bind_rows(dat_maze_idd)
+
+ddc <- dat_maze %>% count(Participant_Public_ID)
+
+## Confederate choices -----------------------
+# Get the maze data for Which confederate was chosen to play with 
 dat_maze_conf = dat_maze %>%
   filter(Zone_Name %in% c('AnnaButton', 'BethButton')) %>%
   group_by(Participant_Public_ID, Help) %>%
@@ -142,43 +158,77 @@ dat_maze_conf = dat_maze %>%
                        ifelse(Help == 'Claire', 'A',
                               ifelse(Help == 'Beth', 'L',0)))) %>%
   mutate(id = Participant_Public_ID) %>%
-  full_join(groups_maze2) %>%
-  na.omit() 
+  full_join(groups_maze2)
 
+# Add a 0 if choice was 100 
+dat_maze_conf2 <- dat_maze_conf %>%
+  filter(perc_chosen == 100) %>%
+  mutate(perc_chosen = 0) %>%
+  mutate(type = ifelse(type == 'choice', 'motor','choice')) 
+
+dat_maze_conf = dat_maze_conf %>%
+  full_join(dat_maze_conf2)
+
+# Plot maze - probability to choose hint for - choice and motor 
 ggplot(dat_maze_conf, aes(x = type, y = perc_chosen)) +
   geom_boxplot()
 
-t_dat_maze = dat_maze_conf %>%
-  filter(perc_chosen != 100)
+# Do the t-test (paired samples t-test)
+t_dat_maze = dat_maze_conf
 
 t.test(data = t_dat_maze, perc_chosen ~ type, paired = TRUE)
   
-summary_perc = dat_maze_conf %>%
+dat_maze_conf %>%
   group_by(type) %>%
   summarise(perc = mean(perc_chosen))
 
+## Follow hint -------------------------
+# We can keep the full data (as 0's and 1's and do a logistic regression)
+# Predicting if mimicking choice vs mimicking motor makes it more likley to follow the hint or not
+dat_maze_conf3 = dat_maze %>%
+  mutate(conf = ifelse(Help == 'Anna', 'M',
+                       ifelse(Help == 'Claire', 'A',
+                              ifelse(Help == 'Beth', 'L',0)))) %>%
+  select(-ChooseDoor) %>%
+  na.omit() %>%
+  rename('id' = 'Participant_Public_ID') %>%
+  full_join(groups_maze2) %>%
+  na.omit() %>% 
+  select(-Zone_Name) %>%
+  arrange(id) %>%
+  mutate(id_n = as.numeric(as.factor(id)),
+         qid = rep(1:12, times = length(unique(groups$id)))) %>%
+  select(-X1)
 
+ids = unique(dat_maze_conf3$id)
+
+# Only 45 participants found in maze game choice - should 46, add aditional 
+# Was confederate followed or not? 
 dat_maze_resp = dat_maze %>%
+  rename('id' = 'Participant_Public_ID') %>%
+  filter(id %in% ids) %>%
   filter(Zone_Name %!in% c('AnnaButton','BethButton')) %>%
   mutate(hint = ifelse(str_detect(Hint, 'left'), 'Left',
                        ifelse(str_detect(Hint, 'right'), 'Right', 0))) %>%
+  arrange(id) %>%
+  mutate(id_n = as.numeric(as.factor(id)),
+         qid = rep(1:12, times = length(unique(groups$id)))) %>%
+
+  select(-Help, - X1) %>%
   mutate(chose_hint = ifelse(hint == ChooseDoor,1 ,0)) %>%
-  group_by(Participant_Public_ID) %>%
-  mutate(perc_followed = sum(chose_hint)/12*100)
-  
-  
-  mutate(confed = ifelse(str_detect(Task_Name, 'Amie'), 'Claire',
-                         ifelse(str_detect(Task_Name, 'Lucile'), 'Beth',
-                                ifelse(str_detect(Task_Name, 'Anna'), 'Marie', 0))),
-         hint = ifelse(str_detect(Hint, 'left'), 'Left',
-                       ifelse(str_detect(Hint, 'right'), 'Right', 0))) %>%
-  mutate(chose_hint = ifelse(hint == Response,1 ,0)) %>%
-  group_by(Participant_Public_ID) %>%
-  mutate(perc_followed = sum(chose_hint)/12*100)
+  full_join(dat_maze_conf3)
 
-mutate(followed_hint )
+mod_maze = glmer(data = dat_maze_resp, chose_hint ~ type + (1|id), family = 'binomial')
+summary(mod_maze)
 
 
+hint_plot = dat_maze_resp %>%
+  group_by(type,id) %>%
+  summarise(perc_followed_hint = mean(chose_hint)*100)
+
+ggplot(hint_plot, aes(x = type, y = perc_followed_hint))+
+  geom_boxplot() + 
+  geom_jitter(alpha = 0.3)
 
 
 
