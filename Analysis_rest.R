@@ -133,8 +133,9 @@ groups_maze2 = groups_maze %>%
 # read in the maze data (produced by load_data.R)
 dat_maze1 <- read_csv('dat_maze.csv') %>%
   filter(Screen_Name %in% c('ChooseDoor', 'Help')) %>%
-  pivot_wider(names_from = Screen_Name, values_from = Response) %>%
-  filter(Participant_Public_ID != 'ucjf5it7')
+  pivot_wider(names_from = Screen_Name, values_from = Response) 
+colnames(dat_maze1) = c('X1',colnames(dat_maze1)[2:7])
+
 
 
 # Fix the one participant with 2 results 
@@ -143,8 +144,10 @@ dat_maze_idd = dat_maze1 %>%
 filter(X1 < 264)
 
 dat_maze = dat_maze1 %>%
+  filter(Participant_Public_ID != 'ucjf5it7') %>%
   bind_rows(dat_maze_idd)
 
+# Check if each participant has the same number of rows
 ddc <- dat_maze %>% count(Participant_Public_ID)
 
 ## Confederate choices -----------------------
@@ -158,7 +161,8 @@ dat_maze_conf = dat_maze %>%
                        ifelse(Help == 'Claire', 'A',
                               ifelse(Help == 'Beth', 'L',0)))) %>%
   mutate(id = Participant_Public_ID) %>%
-  full_join(groups_maze2)
+  full_join(groups_maze2) %>%
+  na.omit()
 
 # Add a 0 if choice was 100 
 dat_maze_conf2 <- dat_maze_conf %>%
@@ -218,7 +222,7 @@ dat_maze_resp = dat_maze %>%
   mutate(chose_hint = ifelse(hint == ChooseDoor,1 ,0)) %>%
   full_join(dat_maze_conf3)
 
-mod_maze = glmer(data = dat_maze_resp, chose_hint ~ type + (1|id), family = 'binomial')
+mod_maze = glm(data = dat_maze_resp, chose_hint ~ type, family = 'binomial')
 summary(mod_maze)
 
 
@@ -234,8 +238,9 @@ ggplot(hint_plot, aes(x = type, y = perc_followed_hint))+
 
 # IDiff ------------------------------
 dat_idiff <- read_csv('dat_IDiff.csv') %>%
-  filter(Screen_name == )
-  mutate(followed_hint )
+  filter(Task_Name == "self construal-dependence/independence") %>%
+  filter(str_detect(Question_Key,'quantised')) %>%
+  mutate(followed_hint)
 
 # Sias ------
 
