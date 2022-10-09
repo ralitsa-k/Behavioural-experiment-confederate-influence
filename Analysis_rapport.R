@@ -4,17 +4,17 @@ library(lme4)
 
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 
-groups = read_csv('groups.csv', col_names = TRUE) %>%select(-1,-2)
+groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2)
 groups_long = groups %>%
-  select(id, first, second, third) %>%
+  dplyr::select(id, first, second, third) %>%
   pivot_longer(2:4, names_to = 'block', values_to = 'type')
 
 
 # Load rapport data  ----------------
-dat_rap = read_csv('rap_data.csv')
+dat_rapport = read_csv('rap_data.csv')
 
 dat_rapport2 = dat_rapport %>%
-  select(12,28,29)
+  dplyr::select('Participant_Public_ID','Question_Key','Response')
 colnames(dat_rapport2) <- c('id', 'question', 'response')
 
 dat_rapport3 <- dat_rapport2 %>%
@@ -28,7 +28,7 @@ dat_rapport3 <- dat_rapport2 %>%
                                           ifelse(str_detect(question, 'established'), 'established', 0)))) %>%
   full_join(groups_long) %>%
   na.omit() %>%
-  rename('Mimicker' = 'type') %>%
+  dplyr::rename('Mimicker' = 'type') %>%
   distinct() %>%
   filter(response > 3)
 

@@ -14,17 +14,19 @@ colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 task_data = read_csv('task_data.csv')
 quest_data = read_csv('questionnaire_data.csv')
 
-groups = read_csv('groups.csv', col_names = TRUE) %>%select(-1,-2)
+groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2)
 # Binary questions ---------------------------------------
   
 bi_dat <- quest_data %>%
-  select(Participant_Public_ID, Question_Key, Response) 
+  dplyr::select(Participant_Public_ID, Question_Key, Response) 
 
 # Change the column names so we can work with them
 colnames(bi_dat) <- c('id', 'question','response') 
 # create some new columns with categories of type of question
 bi_dat2 <- bi_dat %>%
   na.omit() %>%
+  filter(grepl('liking', question)) %>%
+  filter(grepl('quantised', question)) %>%
   mutate(response = as.numeric(response)) %>%
   filter(response < 5) %>%
   mutate(Type_of_question = case_when(question == "liking_art_exhibition-quantised" | question == "liking_family_issue-quantised" | question == "liking_pub-quantised" | question == "liking_walk-quantised" ~ 'warmth', 
@@ -41,7 +43,7 @@ bi_dat3 <- bi_dat2 %>%
                             response == '3' ~ 'third')) 
 
 groups_long = groups %>%
-  select(id,first, second, third) %>%
+  dplyr::select(id,first, second, third) %>%
   pivot_longer(2:4, names_to = 'response', values_to = 'type')
 
 
@@ -141,18 +143,18 @@ chisq2
 
   
 conf_order <- groups %>%
-  select(group, first, second, third) %>%
+  dplyr::select(group, first, second, third) %>%
   distinct() %>%
   pivot_longer(2:4, names_to = 'order', values_to = 'type_mimick') 
 
 conf_type <- groups %>%
-  select(group,conf1, conf2, conf3) %>%
+  dplyr::select(group,conf1, conf2, conf3) %>%
   distinct() %>%
   pivot_longer(2:4, names_to = 'conf', values_to = 'conf_name') %>%
-  select(-group)
+  dplyr::select(-group)
 
 sj_info = read_csv('groups_of_participant.csv') %>%
-  select(1:2) %>% na.omit() %>%
+  dplyr::select(1:2) %>% na.omit() %>%
   rename('group' = 'Group', 'id' = `Gorilla ID`)
 
 conf_info = bind_cols(conf_order, conf_type)
