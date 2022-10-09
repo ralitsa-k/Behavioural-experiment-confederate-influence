@@ -14,4 +14,6 @@ influenced by the different types of mimicking.
 **Analysis summary** 
 R files contain the analysis pipeline which starts with load_data.R 
 and continues with visualisations and the appropriate statistical tests on each hypotheses. 
+For easy of use, instead of running load_data.R each time (as the original raw data is big),
+csv files are created with the appropriate variables for each measure and then used in each associated script. 
 
