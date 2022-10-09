@@ -113,6 +113,7 @@ summary(log_reg)
 
 # Percentages warmth - competence 8 questions 
 bi_dat_8 <- bi_dat_by_group %>%
+  separate(question, -10, into = c('question', 'del')) %>%
   group_by(question, Type_of_question) %>%
   count(type) %>%
   mutate(sum = sum(n),
@@ -121,8 +122,9 @@ bi_dat_8 <- bi_dat_by_group %>%
 ggplot(bi_dat_8, aes(x = question, y = perc, fill = type)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = colors_a) +
-  theme(axis.text.x = element_text(angle = 30)) +
-  facet_wrap(~Type_of_question)
+  theme(axis.text.x = element_text(angle = 10)) +
+  facet_grid(~Type_of_question, scales = "free_x", switch = "x", space = "free_x") 
+  
 
 
 # Check order ----------------

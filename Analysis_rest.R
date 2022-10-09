@@ -206,7 +206,7 @@ dat_maze_conf3 = dat_maze %>%
 
 ids = unique(dat_maze_conf3$id)
 
-# Only 45 participants found in maze game choice - should 46, add aditional 
+# Only 45 participants found in maze game choice - should 46, add additional 
 # Was confederate followed or not? 
 dat_maze_resp = dat_maze %>%
   rename('id' = 'Participant_Public_ID') %>%
@@ -233,6 +233,13 @@ hint_plot = dat_maze_resp %>%
 ggplot(hint_plot, aes(x = type, y = perc_followed_hint))+
   geom_boxplot() + 
   geom_jitter(alpha = 0.3)
+
+dat_maze_resp %>%
+  group_by(type) %>%
+  summarise(perc = mean(chose_hint)*100)
+
+# for choice mimicker they followed  85.7% (out of all choice mimicking trials) 
+# for motor mimicker they followed 78.1% (of all trials with motor mimicking) 
 
 
 
