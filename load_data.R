@@ -17,6 +17,7 @@ read_data <- function(pattern) {
 `%!in%` <- Negate(`%in%`)
 exclude = read_csv('exclude.csv', col_names = 'id')
 path_data = 'C:/Users/ralitsaa/OneDrive - University of Glasgow/Work/Paula/Exp2Data'
+path_exp = 'C:/Users/ralitsaa/OneDrive - University of Glasgow/Work/Paula/Exp2'
 
 
 
@@ -71,7 +72,6 @@ write.csv(dat_rating, 'ratings_data.csv')
 
 
 
-path_exp = 'C:/Users/ralitsaa/OneDrive - University of Glasgow/Work/Paula/Exp2'
 
 
 # Load rapport ----------------------
