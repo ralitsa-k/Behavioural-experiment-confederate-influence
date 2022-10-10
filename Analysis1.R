@@ -73,6 +73,7 @@ bi_dat_by_group %>%
   count(type) %>%
   pivot_wider(names_from = type, values_from = n)
 
+# Effect size ------------
 phi = sqrt(15.382 / 28)
 phi
 
@@ -121,21 +122,18 @@ bi_dat_8 <- bi_dat_by_group %>%
   group_by(question) %>%
   mutate(label_y = cumsum(perc) - 0.5 * perc)
 
-
 ggplot(bi_dat_8, aes(x = question, y = perc, fill = type)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = colors_a) +
   theme(axis.text.x = element_text(angle = 10)) +
   facet_grid(~Type_of_question, scales = "free_x", switch = "x", space = "free_x")  +
   geom_text(aes(y = 100-label_y, label = round(perc,2)), vjust = 1.5, colour = "white")
-
   
 
 
 # Check order ----------------
 bi_dat_by_group %>% group_by(Type_of_question) %>% count(response) %>%
   mutate(sum_n = sum(n), perc = 100*(n/sum_n)) %>%
-  
   ggplot(aes(x = Type_of_question, y = perc, fill = response)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = colors_a) +
@@ -146,9 +144,9 @@ bi_dat_by_group %>% group_by(Type_of_question) %>% count(response) %>%
 chisq2 <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$response)
 chisq2
 
+
 # Check confederate --------------------
 
-  
 conf_order <- groups %>%
   dplyr::select(group, first, second, third) %>%
   distinct() %>%
@@ -182,4 +180,19 @@ conf_tab <- dat_id_conf %>%
 
 chisq2 <- chisq.test(dat_id_conf$type_mimick,dat_id_conf$response)
 chisq2
+
+# Number of Participants per group
+dat_id_conf %>% select(id, group) %>% distinct %>% count(group)
+
+# number of times 
+check_conf_times =dat_id_conf %>%
+  group_by(type_mimick, conf_name) %>%
+  count()
+# number of times of order
+check_conf_times = dat_id_conf %>%
+  group_by(order, conf_name) %>%
+  count(conf_name)
+
+
+# Check if confederate type (name) 
 

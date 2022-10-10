@@ -47,7 +47,6 @@ pwc
 
 
 
-
 # attributes/affiliation -----------------------
 dat_affil <- read_csv('dat_affil.csv') %>%
   dplyr::select(Participant_Public_ID, response,Question_Key) %>%
@@ -164,6 +163,19 @@ dat_maze_conf = dat_maze %>%
   full_join(groups_maze2) %>%
   na.omit()
 
+dat_maze_conf %>%
+  ggplot(aes(x = type, y = perc_chosen)) +
+  geom_violin() +
+  scale_y_continuous(breaks = c(seq(from=0, to =100, 10)))
+
+dat_maze_conf_glm = dat_maze_conf %>%
+  mutate(perc_chosen2 = 100-perc_chosen) %>%
+  filter(type == 'choice') %>%
+  mutate(choice_over_motor = perc_chosen - perc_chosen2)
+
+t.test(dat_maze_conf_glm$choice_over_motor, mu = 0)
+
+
 # Add a 0 if choice was 100 
 dat_maze_conf2 <- dat_maze_conf %>%
   filter(perc_chosen == 100) %>%
@@ -249,7 +261,15 @@ dat_idiff <- read_csv('dat_IDiff.csv') %>%
   filter(str_detect(Question_Key,'quantised')) %>%
   mutate(followed_hint)
 
+iri_scoring <- read_csv('iri_scoring.csv', col_names = TRUE)
+sias_scoring <- read_csv('SIAS_scoring.csv',col_names = TRUE)
 # Sias ------
+dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
+  filter(grepl('SIAS', Question_Key)) %>%
+  filter(!grepl('quantised', Question_Key)) %>%
+  mutate(SIAS_id = Question_Key) %>%
+  full_join(sias_scoring) %>%
+  mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
 # IRI --------------
 

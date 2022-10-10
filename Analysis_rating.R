@@ -101,6 +101,10 @@ ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
 
 # Analysis change from baseline ---------------------------------
 
+exp_means <- exp_means %>%
+  mutate(type = as.factor(type))
+
+exp_means <- within(exp_means, type <- relevel(type, ref = 'motor'))
 
 mod2 <- lm(data = exp_means, change_in_rating ~ type * Type_of_question)
 summary(mod2)
@@ -143,10 +147,16 @@ r_model <- lm(mean_r ~ Type_of_question * type, data = avg_ratings)
 summary(r_model)
 
 
-# Only significant difference between warmth nd competence ratings in the motor mimickry 
+# Only significant difference between warmth and competence ratings in the motor mimickry 
 # Higher ratings for competence than warmth (in the case of motor mimicry)
 avg_ratings_motor <- avg_ratings %>%
   filter(type == 'motor')
 
 r_model2 <- lm(mean_r ~ Type_of_question, data = avg_ratings_motor)
 summary(r_model2)
+
+
+# Histograms to check motor 
+avg_ratings_motor2 = avg_ratings_motor %>% filter(type == 'motor') %>% filter(Type_of_question == 'warmth')
+
+
