@@ -152,10 +152,13 @@ dat_IDiff <- read_data(pattern)
 dat_IDiff2 <- dat_IDiff %>%
   dplyr::select(Participant_Public_ID, Task_Name, Question_Key,Response) %>%
   na.omit(Response) %>%
-  mutate(response = as.numeric(Response)) %>%
-  filter(response < 1000)
+  mutate(Response = as.numeric(Response)) %>%
+  filter(Response < 1000)
 
 write.csv(dat_IDiff2, 'dat_IDiff.csv')
+
+
+# SIAS 
 
 
 
