@@ -272,5 +272,10 @@ dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
 # IRI --------------
-
+dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
+  filter(grepl('IRI', Question_Key)) %>%
+  filter(!grepl('quantised', Question_Key)) %>%
+  mutate(IRI_id = Question_Key) %>%
+  full_join(iri_scoring) %>%
+  mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
