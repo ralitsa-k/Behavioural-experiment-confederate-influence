@@ -278,4 +278,4 @@ dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
   mutate(IRI_id = Question_Key) %>%
   full_join(iri_scoring) %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
-
+♣

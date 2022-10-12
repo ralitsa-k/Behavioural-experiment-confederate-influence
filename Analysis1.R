@@ -65,6 +65,12 @@ bi_dat_by_group %>% group_by(Type_of_question) %>% count(type) %>%
   ggtitle('Binary questions. Percentage of times each mimicker was chosen') +
   theme_minimal()
 
+
+
+# Binary questions -----------------
+bi_dat_by_group %>% 
+ filter(grepl('pub', question))
+
 # Chi squared -----------------------------------
 chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
 chisq
@@ -110,6 +116,49 @@ log_reg <- glmer(factor(type) ~ Type_of_question + (1|id), data = bi_dat_by_grou
 summary(log_reg)
 
 
+
+# Chronbach's alpha All together --------------------
+chr <- bi_dat_by_group %>%
+  select(id, question, type) %>%
+  mutate(type = as.numeric(as.factor(type))) %>%
+  distinct() %>%
+  spread(question,type) %>%
+  select(-id) 
+
+cronbach.alpha(chr)
+
+# Chronbach's alpha warmth --------------------
+chr <- bi_dat_by_group %>%
+  filter(Type_of_question == 'warmth') %>%
+  select(id, question, type) %>%
+  mutate(type = as.numeric(as.factor(type))) %>%
+  distinct() %>%
+  spread(question,type) %>%
+  select(-id) 
+
+cronbach.alpha(chr)
+
+# Chronbach's alpha competence --------------------
+
+chr <- bi_dat_by_group %>%
+  filter(Type_of_question == 'competence') %>%
+  select(id, question, type) %>%
+  mutate(type = as.numeric(as.factor(type))) %>%
+  distinct() %>%
+  spread(question,type) %>%
+  select(-id) %>%
+  select(-contains('car'))
+
+cronbach.alpha(chr)
+
+
+mean_ratio_alpha = cronbach.alpha(chr, standardized = FALSE)
+
+
+
+
+
+
 # 8 Binary by question ------------------------
 
 # Percentages warmth - competence 8 questions 
@@ -126,9 +175,9 @@ ggplot(bi_dat_8, aes(x = question, y = perc, fill = type)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = colors_a) +
   theme(axis.text.x = element_text(angle = 10)) +
-  facet_grid(~Type_of_question, scales = "free_x", switch = "x", space = "free_x")  +
-  geom_text(aes(y = 100-label_y, label = round(perc,2)), vjust = 1.5, colour = "white")
-  
+  facet_grid(rows = vars(Type_of_question), scales = "free_y", switch = "y", space = "free_y")  +
+  geom_text(aes(y = 100-label_y, label = round(perc)), vjust = 1.5, colour = "white") +
+  coord_flip()
 
 
 # Check order ----------------

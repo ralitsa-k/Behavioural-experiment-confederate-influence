@@ -53,6 +53,17 @@ ratings_by_group = ratings_data %>%
   rename('block' = 'response')
 
 
+
+# Ratings across mimicking for each question --------------------
+ratings_by_group_fr <- ratings_by_group %>%
+  filter(grepl('friendly', question)) %>%
+  filter(block != 'baseline')
+
+mod_Fr <- aov(data = ratings_by_group_fr, rating~type)
+summary(mod_Fr)
+
+
+
 # Add baseline --------------------------
 
 ratings_baseline = ratings_data %>%
