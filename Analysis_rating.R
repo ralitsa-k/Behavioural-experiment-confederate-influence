@@ -1,5 +1,7 @@
 
 library(tidyverse)
+
+require(ltm)
 library(lme4)
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 
@@ -55,14 +57,71 @@ ratings_by_group = ratings_data %>%
 
 
 # Ratings across mimicking for each question --------------------
+
+vars2 = c('friendly', 'competent', 'attractiveness', 
+         'art_knowledge', 'similarity', 'rational')
+
+  i = 6
 ratings_by_group_fr <- ratings_by_group %>%
-  filter(grepl('friendly', question)) %>%
-  filter(block != 'baseline')
+  filter(grepl(vars2[i], question)) 
+  filter(block != 'baseline') %>%
+  distinct()
 
 mod_Fr <- aov(data = ratings_by_group_fr, rating~type)
 summary(mod_Fr)
 
+TukeyHSD(mod_Fr)
 
+ggplot(ratings_by_group_fr, aes(type, rating))+
+  geom_violin() +
+  geom_jitter() +
+  ggtitle(paste0(vars[i], ' has a p value of ',
+                 round(summary(mod_Fr)[[1]][['Pr(>F)']][1],4)))   
+
+# Assumptions check 
+plot(mod_Fr)
+
+# Ratings questions chronbach alpha -------------------
+chr_d <- ratings_by_group %>%
+  dplyr::select(id, question, rating) %>%
+  na.omit() %>%
+  mutate(confed_name = ifelse(str_detect(question, 'Lucile'), 'L', 
+                              ifelse(str_detect(question, 'Maria'), 'M',
+                                     ifelse(str_detect(question, 'Amie'), 'A', 99)))) %>%
+  filter(confed_name == 99) %>%
+  distinct() %>%
+  pivot_wider(names_from = question, values_from = rating) %>%
+  dplyr::select(-1,-2) %>%
+  dplyr::select(contains(c('friendly', 'similar', 'attractiveness')))
+(0.8 + 0.744 + 0.81)/3
+# Average of cronbachs alphas 0.79
+
+cronbach.alpha(chr_d)
+
+
+# warmth chronbach
+chr_d <- ratings_by_group %>%
+  dplyr::select(id, question, rating) %>% na.omit() %>%
+  mutate(confed_name = ifelse(str_detect(question, 'Lucile'), 'L', 
+                              ifelse(str_detect(question, 'Maria'), 'M',
+                                     ifelse(str_detect(question, 'Amie'), 'A', 99)))) %>%
+  filter(confed_name == 99) %>% distinct() %>%
+  pivot_wider(names_from = question, values_from = rating) %>%
+  dplyr::select(-1,-2) %>%
+  dplyr::select(contains(c('friendly', 'similar', 'attractiveness')))
+cronbach.alpha(chr_d)
+
+# competence chronbach
+chr_d <- ratings_by_group %>%
+  dplyr::select(id, question, rating) %>% na.omit() %>%
+  mutate(confed_name = ifelse(str_detect(question, 'Lucile'), 'L', 
+                              ifelse(str_detect(question, 'Maria'), 'M',
+                                     ifelse(str_detect(question, 'Amie'), 'A', 99)))) %>%
+  filter(confed_name == 99) %>% distinct() %>%
+  pivot_wider(names_from = question, values_from = rating) %>%
+  dplyr::select(-1,-2) %>%
+  dplyr::select(contains(c('art', 'compet', 'rational')))
+cronbach.alpha(chr_d)
 
 # Add baseline --------------------------
 

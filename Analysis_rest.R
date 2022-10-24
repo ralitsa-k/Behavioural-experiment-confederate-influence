@@ -310,6 +310,73 @@ summary(log_reg)
 
 
 
+# SC scores ---------------
+sc_scoring <- read_csv('sc_scoring.csv')
+
+dat_sc <-read_csv('dat_SC.csv') %>%
+  full_join(sc_scoring) %>%
+  mutate(id = Participant_Public_ID) %>%
+  group_by(id, Scale) %>%
+  summarise(score_sc = sum(Response)) %>%
+  pivot_wider(names_from = Scale, values_from = score_sc) %>%
+  mutate(mean_score = ind - intr)
+
+dat_sc_liking = bi_dat_by_group %>%
+  full_join(dat_sc) %>%
+  filter(type!='control') %>%
+  filter(id != 'ucjf5it7')
+
+log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = dat_sc_liking, family = 'binomial')
+summary(log_reg)
+
+counts_d <- dat_sc_liking %>%
+  group_by(id) %>%
+  filter(id != 'ucjf5it7') %>%
+  mutate(n = n()) %>%
+  group_by(id, type) %>%
+  mutate(count_type = n())%>%
+  dplyr::select(id, type, count_type, n, mean_score) %>%
+  distinct() %>%
+  mutate(perc_chosen = (count_type/n)*100)
+
+ggplot(counts_d, aes(x = mean_score, y = perc_chosen, color = type)) +
+  geom_point() +
+  geom_smooth(method = 'lm')
+
+# higher interdependence 
+
+counts_d2 <- dat_sc_liking %>%
+  group_by(id) %>%
+  filter(id != 'ucjf5it7') %>%
+  mutate(n = n()) %>%
+  group_by(id, type) %>%
+  mutate(count_type = n())%>%
+  dplyr::select(id, type, count_type, n, mean_score) %>%
+  distinct() %>%
+  mutate(perc_chosen = (count_type/n)*100) %>%
+  dplyr::select(-n, -count_type) %>%
+  pivot_wider(names_from = type, values_from = perc_chosen) %>%
+  mutate(choice = ifelse(is.na(choice), 0, choice),
+         motor = ifelse(is.na(motor), 0, motor)) %>%
+  mutate(choice_more_than_motor = choice- motor)
+
+dat_sc2 <-read_csv('dat_SC.csv') %>%
+  full_join(sc_scoring) %>%
+  mutate(id = Participant_Public_ID) %>%
+  group_by(id, Scale) %>%
+  summarise(score_sc = sum(Response)) %>%
+  pivot_wider(names_from = Scale, values_from = score_sc) 
+
+intr_choice <- counts_d2 %>%
+  inner_join(dat_sc2)
+
+ggplot(intr_choice, aes(intr, choice_more_than_motor)) +
+  geom_point() +
+  geom_smooth(method = 'lm')
+  
+# Interdependence does not predict choosing choice mimicker more often than
+#    motor mimicker 
+
 
 
 

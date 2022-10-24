@@ -32,7 +32,6 @@ bi_dat2 <- bi_dat %>%
   filter(response < 5) %>%
   mutate(Type_of_question = case_when(question == "liking_art_exhibition-quantised" | question == "liking_family_issue-quantised" | question == "liking_pub-quantised" | question == "liking_walk-quantised" ~ 'warmth', 
                                       question == "liking_driving_car-quantised" | question == "liking_job_preparation-quantised" | question == "liking_fixing_computer-quantised" | question == "liking_essay-quantised" ~ 'competence'))
-  
 
 bi_dat_sum <- bi_dat2 %>%
   group_by(Type_of_question) %>%
@@ -120,6 +119,13 @@ bi_dat_by_group$type <- relevel(factor(bi_dat_by_group$type), ref = "motor")
 mult_model2 <- multinom(factor(type) ~ Type_of_question, data = bi_dat_by_group)
 summary(mult_model2)
 
+pValue_extract <- function(x){
+  z <- summary(x)$coefficients/summary(x)$standard.errors
+  # 2-tailed Wald z tests to test significance of coefficients
+  p <- (1 - pnorm(abs(z), 0, 1)) * 2
+  p }
+# choice-motor p = 0.0002, control-motor  p = 0.003
+pValue_extract(mult_model2)
 
 log_reg <- glmer(factor(type) ~ Type_of_question + (1|id), data = bi_dat_by_group, family = 'binomial')
 summary(log_reg)
