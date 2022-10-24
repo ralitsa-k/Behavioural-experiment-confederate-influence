@@ -275,6 +275,18 @@ dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   full_join(sias_scoring) %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
+dat_sias = dat_idiff_sias %>%
+  group_by(Participant_Public_ID) %>%
+  summarise(mean_score = mean(final_score)) %>%
+  na.omit() %>%
+  mutate(id = Participant_Public_ID)
+
+sias_bi_liking = bi_dat_by_group %>%
+  full_join(dat_sias)
+
+log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = sias_bi_liking, family = 'binomial')
+summary(log_reg)
+
 # IRI --------------
 dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
   filter(grepl('IRI', Question_Key)) %>%
@@ -282,4 +294,20 @@ dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
   mutate(IRI_id = Question_Key) %>%
   full_join(iri_scoring) %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
-♣
+
+dat_iri = dat_idiff_iri %>%
+  group_by(Participant_Public_ID) %>%
+  summarise(mean_score = mean(final_score)) %>%
+  na.omit() %>%
+  mutate(id = Participant_Public_ID)
+
+iri_bi_liking = bi_dat_by_group %>%
+  full_join(dat_iri)
+
+log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = iri_bi_liking, family = 'binomial')
+summary(log_reg)
+
+
+
+
+

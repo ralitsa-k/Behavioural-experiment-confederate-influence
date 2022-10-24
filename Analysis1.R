@@ -1,5 +1,4 @@
 library(tidyverse)
-detach(package:plyr)
 library(lme4)
 require(nnet)
 library("gplots")
@@ -70,17 +69,16 @@ bi_dat_by_group %>% group_by(Type_of_question) %>% count(type) %>%
 
 
 # Binary questions no car -----------------
+no_car <- bi_dat_by_group %>% 
+  filter(!grepl('car', question)) 
+
 questions_bi = no_car %>% 
   select(question)  %>%
-  distinct() %>%
+  distinct() 
   
-
-no_car <- bi_dat_by_group %>% 
- filter(!grepl('car', question)) %>%
   
-
-model3 <- glm(data = no_car, type ~ Type_of_question, family = 'binomial')
-summary(model3)
+#model3 <- glm(data = no_car, type ~ Type_of_question, family = 'binomial')
+#summary(model3)
 
 # Chi squared -----------------------------------
 chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
@@ -108,7 +106,7 @@ bi_dat_by_group %>%
   ungroup() %>%
   mutate(prob = (n/sum)*100)
 
-library(corrplot)=
+library(corrplot)
 corrplot(chisq$residuals, is.cor = FALSE)
 
 # Multinomial Logistic Regression -----------------------------
