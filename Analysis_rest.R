@@ -237,6 +237,10 @@ dat_maze_resp = dat_maze %>%
 mod_maze = glm(data = dat_maze_resp, chose_hint ~ type, family = 'binomial')
 summary(mod_maze)
 
+# Out of the trials they chose to play with this person, how many times they followed their hint? 
+#
+
+
 
 hint_plot = dat_maze_resp %>%
   group_by(type,id) %>%

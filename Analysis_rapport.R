@@ -48,8 +48,9 @@ dat_rapport3 %>%
   theme_minimal()
 
 # analysis with type of question -----------------------
-mod1 <- lm(data = dat_rapport3, response ~ Type_of_question * Mimicker)
+mod1 <- aov(data = dat_rapport3, response ~  Mimicker)
 summary(mod1)
+TukeyHSD(mod1)
 # diagnostics are fine for this model check with:  plot(mod1)
 
 # analysis without type of question

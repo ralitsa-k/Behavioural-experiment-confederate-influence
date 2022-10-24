@@ -97,6 +97,7 @@ groups_mim = groups_long %>%
   select(id, confed_name, type)
 
 
+# Ratings controlled for baseline (by subtracting the baseline) -------------------
 exp_means = ratings_avg %>% filter(confed_name == 99) %>%  ungroup() %>%
   select(-confed_name) %>%
   full_join(baseline_mean) %>%
@@ -108,9 +109,6 @@ ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
   scale_fill_manual(values = colors_a[1:2]) +
   labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type') +
   theme_minimal()
-
-
-# Analysis change from baseline ---------------------------------
 
 exp_means <- exp_means %>%
   mutate(type = as.factor(type))
@@ -124,6 +122,10 @@ summary(mod2)
 # (higher score in choice - ratings increased from baseline in choice more than in control)
 
 
+mod2 <- aov(data = exp_means, change_in_rating ~ type * Type_of_question)
+summary(mod2)
+
+TukeyHSD(mod2)
 
 
 # Pointplot of means only
