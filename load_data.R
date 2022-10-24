@@ -158,9 +158,16 @@ dat_IDiff2 <- dat_IDiff %>%
 write.csv(dat_IDiff2, 'dat_IDiff.csv')
 
 
-# SIAS 
+# SC self-construal
 
+pattern <- c('e44t')
+dat_SC <- read_data(pattern)
 
-
-
-
+dat_SC2 <- dat_SC %>%
+  dplyr::select(Participant_Public_ID, Task_Name, Question_Key,Response) %>%
+  na.omit(Response) %>%
+  mutate(Response = as.numeric(Response)) %>%
+  filter(Response < 1000) %>%
+  filter(!grepl('quantised', Question_Key))
+  
+write.csv(dat_SC2, 'dat_SC.csv')
