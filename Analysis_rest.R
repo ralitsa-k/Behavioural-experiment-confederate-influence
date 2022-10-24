@@ -267,6 +267,7 @@ dat_idiff <- read_csv('dat_IDiff.csv') %>%
 
 iri_scoring <- read_csv('iri_scoring.csv', col_names = TRUE)
 sias_scoring <- read_csv('SIAS_scoring.csv',col_names = TRUE)
+
 # Sias ------
 dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   filter(grepl('SIAS', Question_Key)) %>%
@@ -306,6 +307,9 @@ iri_bi_liking = bi_dat_by_group %>%
 
 log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = iri_bi_liking, family = 'binomial')
 summary(log_reg)
+
+
+
 
 
 
