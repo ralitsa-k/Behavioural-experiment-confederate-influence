@@ -1,17 +1,17 @@
 
 library(tidyverse)
-
+detach(package::plyr)
 require(ltm)
 library(lme4)
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 
-groups = read_csv('groups.csv', col_names = TRUE) %>%select(-1,-2)
+groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2)
 groups_long = groups %>%
-  select(id, first, second, third) %>%
+  dplyr::select(id, first, second, third) %>%
   pivot_longer(2:4, names_to = 'response', values_to = 'type')
 
 groups_order = groups %>%
-  select(id, conf1, conf2, conf3) %>%
+  dplyr::select(id, conf1, conf2, conf3) %>%
   pivot_longer(2:4, names_to = 'block', values_to = 'confed_name') %>%
   mutate(block = ifelse(block == 'conf1', 'first', 
                         ifelse(block == 'conf2', 'second',
@@ -61,9 +61,9 @@ ratings_by_group = ratings_data %>%
 vars2 = c('friendly', 'competent', 'attractiveness', 
          'art_knowledge', 'similarity', 'rational')
 
-  i = 6
+for (i in 1:6) {
 ratings_by_group_fr <- ratings_by_group %>%
-  filter(grepl(vars2[i], question)) 
+  filter(grepl(vars2[i], question)) %>%
   filter(block != 'baseline') %>%
   distinct()
 
@@ -72,14 +72,15 @@ summary(mod_Fr)
 
 TukeyHSD(mod_Fr)
 
-ggplot(ratings_by_group_fr, aes(type, rating))+
+gg = ggplot(ratings_by_group_fr, aes(type, rating))+
   geom_violin() +
   geom_jitter() +
-  ggtitle(paste0(vars[i], ' has a p value of ',
+  ggtitle(paste0(vars2[i], ' has a p value of ',
                  round(summary(mod_Fr)[[1]][['Pr(>F)']][1],4)))   
-
-# Assumptions check 
-plot(mod_Fr)
+  print(paste0(vars2[i], ' has a p value of ',
+               round(summary(mod_Fr)[[1]][['Pr(>F)']][1],4)))
+print(gg)
+}
 
 # Ratings questions chronbach alpha -------------------
 chr_d <- ratings_by_group %>%
@@ -113,7 +114,7 @@ cronbach.alpha(chr_d)
 
 # competence chronbach
 chr_d <- ratings_by_group %>%
-  dplyr::select(id, question, rating) %>% na.omit() %>%
+  dplyr::dplyr::select(id, question, rating) %>% na.omit() %>%
   mutate(confed_name = ifelse(str_detect(question, 'Lucile'), 'L', 
                               ifelse(str_detect(question, 'Maria'), 'M',
                                      ifelse(str_detect(question, 'Amie'), 'A', 99)))) %>%
@@ -135,7 +136,7 @@ ratings_baseline = ratings_data %>%
   filter(confed_name != '99') %>%
   full_join(groups_order) %>%
   na.omit() %>%
-  select(-response) 
+  dplyr::select(-response) 
 
 
 ratings_all = full_join(ratings_baseline, ratings_by_group) %>% filter(block != 'baseline')
@@ -153,12 +154,12 @@ baseline_mean = ratings_avg %>%
 groups_mim = groups_long %>%
   rename('block' = 'response') %>%
   full_join(groups_order) %>%
-  select(id, confed_name, type)
+  dplyr::select(id, confed_name, type)
 
 
 # Ratings controlled for baseline (by subtracting the baseline) -------------------
 exp_means = ratings_avg %>% filter(confed_name == 99) %>%  ungroup() %>%
-  select(-confed_name) %>%
+  dplyr::select(-confed_name) %>%
   full_join(baseline_mean) %>%
   mutate(change_in_rating = mean_r - mean_r_base) %>%
   full_join(groups_mim)

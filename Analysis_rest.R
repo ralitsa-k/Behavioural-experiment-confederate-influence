@@ -22,25 +22,32 @@ dat_affect <- read_csv('dat_affect.csv') %>%
                         ifelse(block==2, 'second', 'third'))) %>%
   dplyr::select(-task) %>%
   rename('id' = 'Participant_Public_ID') %>%
-  distinct()
+  distinct() %>%
+  rename('score' = 'response')
 
 dat_affect_soc = dat_affect %>%
-  inner_join(groups_long)
-
-ggplot(dat_affect_soc, aes(x = type, y = response)) +
-  geom_boxplot()
-ggplot(dat_affect_soc, aes(x = block, y = response)) +
-  geom_boxplot()
-ggplot(dat_affect_soc, aes(x = block, y = response, fill = type)) +
-  geom_boxplot()
-
+  inner_join(groups_long) %>%
+  mutate(keep = ifelse(block == response, 1,0)) %>%
+  filter(keep == 1)
   
-res.aov <- anova_test(data = dat_affect_soc, dv = response, wid = id, within = type)
-get_anova_table(res.aov)
+
+ggplot(dat_affect_soc, aes(x = type, y = score)) +
+  geom_boxplot()
+ggplot(dat_affect_soc, aes(x = block, y = score)) +
+  geom_boxplot()
+ggplot(dat_affect_soc, aes(x = block, y = score, fill = type)) +
+  geom_boxplot()
+
+dat_model = dat_affect_soc %>%
+  select(-response, - block) %>%
+  distinct()
+  
+res.aov <- aov(data = dat_affect_soc, score ~ type)
+summary(res.aov)
 
 pwc <- dat_affect_soc %>%
   pairwise_t_test(
-    response ~ type, paired = TRUE,
+    score ~ type, paired = TRUE,
     p.adjust.method = "bonferroni"
   )
 pwc
@@ -66,9 +73,10 @@ afil_recoded <- dat_affil %>%
 
 # add confederate type by block and get average per block
 dat_afil_soc = afil_recoded %>%
+  select(-response) %>%
   inner_join(groups_long) %>%
   select(id, type, Resp, type, block) %>%
-  distinct() %>%
+  distinct()  %>%
   group_by(id, type, block) %>%
   summarise(Resp = mean(Resp)) %>%
   ungroup()
