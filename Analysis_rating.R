@@ -153,12 +153,12 @@ baseline_mean = ratings_avg %>%
 groups_mim = groups_long %>%
   rename('block' = 'response') %>%
   full_join(groups_order) %>%
-  select(id, confed_name, type)
+  dplyr::select(id, confed_name, type)
 
 
 # Ratings controlled for baseline (by subtracting the baseline) -------------------
 exp_means = ratings_avg %>% filter(confed_name == 99) %>%  ungroup() %>%
-  select(-confed_name) %>%
+  dplyr::select(-confed_name) %>%
   full_join(baseline_mean) %>%
   mutate(change_in_rating = mean_r - mean_r_base) %>%
   full_join(groups_mim)

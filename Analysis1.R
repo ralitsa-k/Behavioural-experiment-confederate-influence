@@ -65,7 +65,7 @@ bi_dat_by_group %>% group_by(Type_of_question) %>% count(type) %>%
   ggtitle('Bin=ary questions. Percentage of times each mimicker was chosen') +
   theme_minimal()
 
-
+write.csv(bi_dat_by_group, 'bi_dat_by_group.csv')
 
 # Binary questions no car -----------------
 no_car <- bi_dat_by_group %>% 

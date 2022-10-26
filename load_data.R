@@ -155,7 +155,7 @@ dat_IDiff2 <- dat_IDiff %>%
   mutate(Response = as.numeric(Response)) %>%
   filter(Response < 1000)
 
-write.csv(dat_IDiff2, 'dat_IDiff.csv')
+write.csv(dat_IDiff, 'dat_IDiff.csv')
 
 
 # SC self-construal
@@ -171,3 +171,23 @@ dat_SC2 <- dat_SC %>%
   filter(!grepl('quantised', Question_Key))
   
 write.csv(dat_SC2, 'dat_SC.csv')
+
+
+
+# Art interest 
+pattern <- c('542i')
+dat_art_indiff <- read_data(pattern) %>%
+  dplyr::select(Participant_Public_ID, Task_Name, Question_Key,Response) %>%
+  na.omit(Response) %>%
+  mutate(Response = as.numeric(Response)) %>%
+  filter(Response < 1000) %>%
+  filter(!grepl('quantised', Question_Key)) %>%
+  distinct()
+
+write.csv(dat_art_indiff, 'dat_art.csv')
+
+
+
+
+
+
