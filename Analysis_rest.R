@@ -100,6 +100,31 @@ pwc2 <- dat_afil_soc %>%
 pwc2
 
 
+# Affiliation separate quesitons ----------------------
+afil_questions = afil_recoded %>%
+  inner_join(groups_long) %>%
+  mutate(question = as.numeric(as.factor(task)))
+
+tasks = unique(afil_questions$task)
+
+for (i in 1:7){
+afil_questions2 = afil_recoded %>%
+  inner_join(groups_long) %>%
+  mutate(question = as.numeric(as.factor(task))) %>%
+  filter(task == tasks[i])
+
+m3 = aov(data = afil_questions2, Resp ~ type)
+summary(m3)
+
+print(paste0('Test of response depending on mimicking type within task ', tasks[i],' p = ',round(summary(m3)[[1]][['Pr(>F)']][1],4)))
+
+}
+
+ggplot(afil_questions,aes(x = task, y = Resp, fill = type))+
+  geom_boxplot()
+
+
+
 # connection/closeness --------------------------------
 dat_close <- read_csv('dat_closeness.csv') %>%
   dplyr::select(Participant_Public_ID, block, response) %>%
@@ -275,7 +300,6 @@ dat_idiff <- read_csv('dat_IDiff.csv') %>%
 
 iri_scoring <- read_csv('iri_scoring.csv', col_names = TRUE)
 sias_scoring <- read_csv('SIAS_scoring.csv',col_names = TRUE)
-
 # Sias ------
 dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   filter(grepl('SIAS', Question_Key)) %>%
@@ -386,7 +410,23 @@ ggplot(intr_choice, aes(intr, choice_more_than_motor)) +
 #    motor mimicker 
 
 
+# Art interest indiff -----------------------------
+
+dat_art_indiff <- read_csv('dat_art.csv') %>%
+  filter(Response < 10)
+
+dat_art_indiff_soc <- dat_art_indiff %>%
+  mutate(id = Participant_Public_ID) %>%
+  full_join(bi_dat_by_group) %>%
+  na.omit() %>%
+  distinct()
 
 
+ggplot(dat_art_indiff_soc, aes(x = Question_Key, y = Response)) +
+  geom_boxplot() +
+  geom_jitter()
 
 
+ggplot(dat_art_indiff_soc, aes(x = Question_Key, y = Response, color = type)) +
+  geom_boxplot() +
+  geom_jitter()
