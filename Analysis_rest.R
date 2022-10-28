@@ -71,6 +71,10 @@ r_sc <- paste(rev_sc, collapse="|")
 afil_recoded <- dat_affil %>%
   mutate(Resp = ifelse(str_detect(task, r_sc),100-response, response))
 
+
+
+
+
 # add confederate type by block and get average per block
 dat_afil_soc = afil_recoded %>%
   select(-response) %>%
@@ -111,7 +115,8 @@ for (i in 1:7){
 afil_questions2 = afil_recoded %>%
   inner_join(groups_long) %>%
   mutate(question = as.numeric(as.factor(task))) %>%
-  filter(task == tasks[i])
+  filter(task == tasks[i]) %>%
+  filter(type != 'control')
 
 m3 = aov(data = afil_questions2, Resp ~ type)
 summary(m3)
@@ -122,7 +127,8 @@ print(paste0('Test of response depending on mimicking type within task ', tasks[
 
 ggplot(afil_questions,aes(x = task, y = Resp, fill = type))+
   geom_boxplot()
-
+ggplot(afil_questions,aes(x = task, y = response, fill = type))+
+  geom_boxplot()
 
 
 # connection/closeness --------------------------------
