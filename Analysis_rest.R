@@ -73,18 +73,18 @@ afil_recoded <- dat_affil %>%
 
 
 
-
-
 # add confederate type by block and get average per block
 dat_afil_soc = afil_recoded %>%
-  select(-response) %>%
+  dplyr::select(-response) %>%
   inner_join(groups_long) %>%
-  select(id, type, Resp, type, block) %>%
+  dplyr::select(id, type, Resp, type, block) %>%
   distinct()  %>%
   group_by(id, type, block) %>%
   summarise(Resp = mean(Resp)) %>%
   ungroup()
   
+write.csv(dat_afil_soc, 'afil_recoded_social_added.csv')
+
 
 ggplot(dat_afil_soc, aes(x = type, y = Resp)) +
   geom_boxplot()
@@ -419,20 +419,124 @@ ggplot(intr_choice, aes(intr, choice_more_than_motor)) +
 # Art interest indiff -----------------------------
 
 dat_art_indiff <- read_csv('dat_art.csv') %>%
-  filter(Response < 10)
+  filter(Response < 10) %>%
+  mutate(id = Participant_Public_ID) 
+
+art_interest_full <- dat_art_indiff %>%
+  group_by(id) %>%
+  summarise(full_score = mean(Response))
+
+# Art and triple questions
+liking_triple <- read_csv('liking_triple_questions.csv')
 
 dat_art_indiff_soc <- dat_art_indiff %>%
-  mutate(id = Participant_Public_ID) %>%
-  full_join(bi_dat_by_group) %>%
+  full_join(liking_triple, by = 'id') %>%
   na.omit() %>%
-  distinct()
+  distinct() %>%
+  group_by(id) %>%
+  mutate(full_score = mean(Response))
 
 
-ggplot(dat_art_indiff_soc, aes(x = Question_Key, y = Response)) +
+ggplot(dat_art_indiff, aes(x = Question_Key, y = Response)) +
   geom_boxplot() +
   geom_jitter()
 
 
-ggplot(dat_art_indiff_soc, aes(x = Question_Key, y = Response, color = type)) +
+ggplot(dat_art_indiff_soc, aes(x = Question_Key, y = full_score, color = type)) +
   geom_boxplot() +
   geom_jitter()
+
+liking_art <- dat_art_indiff %>%
+  mutate(id = Participant_Public_ID) %>%
+  group_by(id) %>%
+  summarise(mean_art= mean(Response)) %>%
+  full_join(liking_triple, by = 'id') %>%
+  group_by(id, mean_art, type) %>%
+  summarise(mean_liking = mean(perc))
+
+# Tripple questions PLOT
+liking_art %>%
+  na.omit() %>%
+ggplot(aes(x = mean_art, mean_liking)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_grid(~type)
+
+## Liking influenced by art interest (tripple questions) -----------------------
+summary(lm(data = liking_art, mean_liking ~ mean_art*type))
+
+
+## ART on Rating questions -----------------------
+
+rating_questions_scores <-  read_csv('rating_questions_scores.csv') %>%
+  group_by(id,type) %>%
+  summarise(mean_rating = mean(mean_r)) %>%
+  full_join(art_interest_full)
+
+
+
+# Does art interest (individual difference = full_score) influence rating of each type (mimick)
+summary(lm(data = rating_questions_scores, mean_rating ~ full_score*type))
+# Not significant, no difference on rating scored depedning on art interest 
+
+rating_questions_scores %>%
+  na.omit() %>%
+  ggplot(aes(x = full_score, y = mean_rating)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_grid(~type) +
+  labs(x = 'Art score', y = 'Rating score')
+
+# Dividing ratings by warmth and competence does not result in significant results 
+rating_questions_scores <-  read_csv('rating_questions_scores.csv') %>%
+  group_by(id,type, Type_of_question) %>%
+  summarise(mean_rating = mean(mean_r)) %>%
+  full_join(art_interest_full)
+
+summary(lm(data = rating_questions_scores, mean_rating ~ full_score*type*Type_of_question))
+
+
+
+
+
+# Affiliation, Rapport, Closeness, Rating questions -----------------------
+# cronbachs 
+
+
+afil_recoded_social <- read_csv('afil_recoded_social_added.csv') %>%
+  mutate(afil_resp = Resp)
+
+rapport_tidy <- read_csv('tidy_rapport.csv') %>%
+  mutate(type = Mimicker) %>%
+  group_by(id, type) %>%
+  summarise(mean_rapport = mean(response)) 
+  
+
+dat_close <- read_csv('dat_closeness.csv') %>%
+  mutate(close_resp = response) %>%
+  dplyr::select(Participant_Public_ID, block, close_resp) %>%
+  rename('id' = 'Participant_Public_ID') %>%
+  mutate(block = ifelse(block == 1, 'first', 
+                        ifelse(block==2, 'second', 'third'))) %>%
+  mutate(response = block) %>%
+  right_join(groups_long, by = c('response', 'id')) %>%
+  distinct() %>%
+  dplyr::select(id, type, close_resp) 
+
+
+rating_questions_scores <-  read_csv('rating_questions_scores.csv') %>%
+  group_by(id,type) %>%
+  summarise(mean_rating = mean(mean_r)) 
+
+
+general_liking <- afil_recoded_social %>%
+  full_join(dat_close) %>%
+  full_join(rating_questions_scores) %>%
+  full_join(rapport_tidy) %>%
+  dplyr::select(5:9) %>%
+  na.omit()
+
+cronbach.alpha(general_liking)
+
+
+

@@ -47,6 +47,10 @@ groups_long = groups %>%
   pivot_longer(2:4, names_to = 'response', values_to = 'type')
 
 
+recoding_tripple <- bi_dat_by_group %>%
+  filter(id == 'u4ckj0xb') %>%
+  pivot_wider(names_from=question,values_from= type)
+
 bi_dat_by_group = bi_dat3 %>%
   full_join(groups_long) %>%
   filter(!is.na(type)) %>%
@@ -66,6 +70,7 @@ bi_dat_by_group %>% group_by(Type_of_question) %>% count(type) %>%
   theme_minimal()
 
 write.csv(bi_dat_by_group, 'bi_dat_by_group.csv')
+write.csv(sum_by_id, 'liking_triple_questions.csv')
 
 # Binary questions no car -----------------
 no_car <- bi_dat_by_group %>% 

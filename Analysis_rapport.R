@@ -32,6 +32,8 @@ dat_rapport3 <- dat_rapport2 %>%
   distinct() %>%
   filter(response > 3)
 
+write.csv(dat_rapport3, 'tidy_rapport.csv')
+
 # Plot ------------------------
 dat_rapport3 %>% 
   ggplot(aes(x = Mimicker, y = response, fill = Type_of_question)) +
