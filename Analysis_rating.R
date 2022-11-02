@@ -1,7 +1,7 @@
 
 library(tidyverse)
 detach(package::plyr)
-require(ltm)
+library(psy)
 library(lme4)
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 
@@ -97,7 +97,7 @@ chr_d <- ratings_by_group %>%
 (0.8 + 0.744 + 0.81)/3
 # Average of cronbachs alphas 0.79
 
-cronbach.alpha(chr_d)
+cronbach(chr_d)
 
 
 # warmth chronbach
@@ -110,7 +110,7 @@ chr_d <- ratings_by_group %>%
   pivot_wider(names_from = question, values_from = rating) %>%
   dplyr::select(-1,-2) %>%
   dplyr::select(contains(c('friendly', 'similar', 'attractiveness')))
-cronbach.alpha(chr_d)
+cronbach(chr_d)
 
 # competence chronbach
 chr_d <- ratings_by_group %>%
@@ -122,7 +122,7 @@ chr_d <- ratings_by_group %>%
   pivot_wider(names_from = question, values_from = rating) %>%
   dplyr::select(-1,-2) %>%
   dplyr::select(contains(c('art', 'compet', 'rational')))
-cronbach.alpha(chr_d)
+cronbach(chr_d)
 
 
 # Liking tripple questions and rating scale ------------------------
@@ -165,7 +165,7 @@ cronbachs_liking = liking_tripple_and_rating %>%
   ungroup() %>%
   dplyr::select(-id)
 
-cronbach.alpha(cronbachs_liking)
+cronbach(cronbachs_liking)
 
 cronbachs_liking %>%
   ggplot(aes(choicemean_liking_tripple, y = choicemean_rating)) +
