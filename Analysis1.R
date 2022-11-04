@@ -263,5 +263,4 @@ check_conf_times = dat_id_conf %>%
   count(conf_name)
 
 
-# Check if confederate type (name) 
 
