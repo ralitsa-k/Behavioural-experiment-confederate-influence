@@ -1,7 +1,6 @@
 
 library(tidyverse)
 library(rstatix)
-detach(package:plyr)
 library(lme4)
 
 `%!in%` = Negate(`%in%`)
@@ -26,9 +25,7 @@ dat_affect <- read_csv('dat_affect.csv') %>%
   rename('score' = 'response')
 
 dat_affect_soc = dat_affect %>%
-  inner_join(groups_long) %>%
-  mutate(keep = ifelse(block == response, 1,0)) %>%
-  filter(keep == 1)
+  inner_join(groups_long)
   
 
 ggplot(dat_affect_soc, aes(x = type, y = score)) +
@@ -39,7 +36,7 @@ ggplot(dat_affect_soc, aes(x = block, y = score, fill = type)) +
   geom_boxplot()
 
 dat_model = dat_affect_soc %>%
-  select(-response, - block) %>%
+  select(- block) %>%
   distinct()
   
 res.aov <- aov(data = dat_affect_soc, score ~ type)
@@ -301,8 +298,7 @@ dat_maze_resp %>%
 # IDiff ------------------------------
 dat_idiff <- read_csv('dat_IDiff.csv') %>%
   filter(Task_Name == "self construal-dependence/independence") %>%
-  filter(str_detect(Question_Key,'quantised')) %>%
-  mutate(followed_hint)
+  filter(str_detect(Question_Key,'quantised'))
 
 iri_scoring <- read_csv('iri_scoring.csv', col_names = TRUE)
 sias_scoring <- read_csv('SIAS_scoring.csv',col_names = TRUE)
@@ -312,6 +308,7 @@ dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   filter(!grepl('quantised', Question_Key)) %>%
   mutate(SIAS_id = Question_Key) %>%
   full_join(sias_scoring) %>%
+  mutate(Response = as.numeric(Response)) %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
 dat_sias = dat_idiff_sias %>%
@@ -332,6 +329,7 @@ dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
   filter(!grepl('quantised', Question_Key)) %>%
   mutate(IRI_id = Question_Key) %>%
   full_join(iri_scoring) %>%
+  mutate(Response = as.numeric(Response)) %>%
   mutate(final_score = ifelse(score_order == 0, Response, 4 - Response))
 
 dat_iri = dat_idiff_iri %>%
@@ -519,7 +517,7 @@ dat_close <- read_csv('dat_closeness.csv') %>%
   mutate(block = ifelse(block == 1, 'first', 
                         ifelse(block==2, 'second', 'third'))) %>%
   mutate(response = block) %>%
-  right_join(groups_long, by = c('response', 'id')) %>%
+  right_join(groups_long, by = c('id')) %>%
   distinct() %>%
   dplyr::select(id, type, close_resp) 
 

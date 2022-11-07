@@ -5,9 +5,10 @@ library("gplots")
 library(ltm)
 require(ltm)
 
-rm(list= ls())
 
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
+bi_dat_by_group = read_csv('bi_dat_by_group.csv')
+
 
 # First run load_data to get csv files for task and questionnaire data 
 

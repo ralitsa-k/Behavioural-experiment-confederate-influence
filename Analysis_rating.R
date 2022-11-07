@@ -1,6 +1,5 @@
 
 library(tidyverse)
-detach(package::plyr)
 library(psy)
 library(lme4)
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
@@ -16,6 +15,17 @@ groups_order = groups %>%
   mutate(block = ifelse(block == 'conf1', 'first', 
                         ifelse(block == 'conf2', 'second',
                                ifelse(block == 'conf3', 'third', 0))))
+
+# ADD art interest
+dat_art_indiff <- read_csv('dat_art.csv') %>%
+  filter(Response < 10) %>%
+  mutate(id = Participant_Public_ID) 
+
+art_interest_full <- dat_art_indiff %>%
+  group_by(id) %>%
+  summarise(full_score = mean(Response))
+
+
 
 
 groups_mim = groups_long %>%
@@ -114,7 +124,7 @@ cronbach(chr_d)
 
 # competence chronbach
 chr_d <- ratings_by_group %>%
-  dplyr::dplyr::select(id, question, rating) %>% na.omit() %>%
+  dplyr::select(id, question, rating) %>% na.omit() %>%
   mutate(confed_name = ifelse(str_detect(question, 'Lucile'), 'L', 
                               ifelse(str_detect(question, 'Maria'), 'M',
                                      ifelse(str_detect(question, 'Amie'), 'A', 99)))) %>%
@@ -126,24 +136,23 @@ cronbach(chr_d)
 
 
 # Liking tripple questions and rating scale ------------------------
-rating_questions_scores <-  read_csv('rating_questions_scores.csv') %>%
-  group_by(id,type) %>%
-  summarise(mean_rating = mean(mean_r)) %>%
-  full_join(art_interest_full)
-liking_triple <- read_csv('liking_triple_questions.csv')
+rating_questions_scores <-  read_csv('rating_questions_scores.csv')%>%
+  group_by(id, type) %>%
+  summarise(mean_rating = mean(mean_r)) 
+
+liking_triple <- read_csv('liking_triple_questions.csv') 
+
 composite_rating_questions_scores <- rating_questions_scores %>%
   group_by(id, type) %>%
   summarise(mean_rating = mean(mean_rating))
 
 liking_tripple_and_rating <- liking_triple %>%
+  ungroup() %>%
   group_by(id, type) %>%
   summarise(mean_liking_tripple = mean(perc)) %>%
-  full_join(composite_rating_questions_scores, by = c("id", 'type'))
+  full_join(composite_rating_questions_scores, by = c("id", 'type')) %>%
+  na.omit()
 
-liking_tripple_and_rating %>%
-  ggplot(aes(x= mean_liking_tripple, mean_rating)) +
-  geom_point() +
-  geom_smooth(method = 'lm')
 
 
 # Rating and liking tripple cronbachs alpha ---------------------
@@ -253,14 +262,14 @@ TukeyHSD(mod2)
 # Pointplot of means only
 ratings2 = ratings_by_group %>%
   group_by(id,Type_of_question, type) %>% 
-  mutate(mean_r = mean(rating))
-  ggplot(ratings2, aes(x = type, y = mean_r, color = Type_of_question))+
-  geom_boxplot() +
-    geom_jitter()
-  geom_point(ratings2, aes(x = type,y = mean_r))
-  labs(title = 'Means for competence or warmth for each mimick type',y = 'Mean response') +
-  scale_color_manual(values = colors_a[1:2]) +
-  theme_minimal()
+  mutate(mean_r = mean(rating)) 
+
+ggplot(ratings2, aes(x = type, y = mean_r, color = Type_of_question)) +
+    geom_boxplot() +
+      geom_jitter() + 
+    geom_point(aes(x = type,y = mean_r)) +
+    labs(title = 'Means for competence or warmth for each mimick type',y = 'Mean response') +
+    theme_minimal()
 
 # Boxplot
 data_by_id = ratings_by_group %>%
