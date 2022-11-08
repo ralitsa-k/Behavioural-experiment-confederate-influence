@@ -40,7 +40,7 @@ dat_rapport3 %>%
   geom_boxplot() +
   scale_fill_manual(values=colors_a) +
   labs(y = 'Response', title = 'Means for rapport for each mimick type') +
-  theme_minimal()
+  theme_minimal() 
 
 dat_rapport3 %>% 
   ggplot(aes(x = Mimicker, y = response)) +
@@ -49,10 +49,22 @@ dat_rapport3 %>%
   labs(y = 'Response', title = 'Means for rapport for each mimick type') +
   theme_minimal()
 
+mod_rapport_3 <- dat_rapport3 %>%
+  group_by(id, Mimicker) %>%
+  summarise(mean_resp = mean(response)) %>%
+  ungroup() %>%
+  filter(id != 'p1el4un1')
+
 # analysis with type of question -----------------------
-mod1 <- aov(data = dat_rapport3, response ~  Mimicker)
-summary(mod1)
-TukeyHSD(mod1)
+res.aov <- anova_test(data = mod_rapport_3, dv = mean_resp, within = Mimicker, wid = id)
+get_anova_table(res.aov)
+
+pwc <- mod_rapport_3 %>%
+  pairwise_t_test(
+    mean_resp ~ Mimicker, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwc
 # diagnostics are fine for this model check with:  plot(mod1)
 
 # analysis without type of question

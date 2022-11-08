@@ -25,7 +25,8 @@ dat_affect <- read_csv('dat_affect.csv') %>%
   rename('score' = 'response')
 
 dat_affect_soc = dat_affect %>%
-  inner_join(groups_long)
+  inner_join(groups_long) %>%
+  mutate(score = ifelse(score == 0, 31, score))
   
 
 ggplot(dat_affect_soc, aes(x = type, y = score)) +
@@ -36,17 +37,21 @@ ggplot(dat_affect_soc, aes(x = block, y = score, fill = type)) +
   geom_boxplot()
 
 dat_model = dat_affect_soc %>%
-  select(- block) %>%
+  dplyr::select(-block) %>%
   distinct()
   
-res.aov <- aov(data = dat_affect_soc, score ~ type)
-summary(res.aov)
+dat_affect_soc %>%
+  ggplot(aes(x= type, y = score))+ geom_boxplot()
+
+res.aov <- anova_test(data = dat_affect_soc, dv = score, wid = id, within = type)
+get_anova_table(res.aov)
 
 pwc <- dat_affect_soc %>%
   pairwise_t_test(
     score ~ type, paired = TRUE,
     p.adjust.method = "bonferroni"
   )
+
 pwc
 
 
@@ -109,6 +114,7 @@ afil_questions = afil_recoded %>%
 tasks = unique(afil_questions$task)
 
 for (i in 1:7){
+i = 4
 afil_questions2 = afil_recoded %>%
   inner_join(groups_long) %>%
   mutate(question = as.numeric(as.factor(task))) %>%
@@ -117,8 +123,10 @@ afil_questions2 = afil_recoded %>%
 
 m3 = aov(data = afil_questions2, Resp ~ type)
 summary(m3)
+res.aov <- anova_test(data = afil_questions2, dv = Resp, wid = id, within = type)
+get_anova_table(res.aov)
 
-print(paste0('Test of response depending on mimicking type within task ', tasks[i],' p = ',round(summary(m3)[[1]][['Pr(>F)']][1],4)))
+print(paste0('Test of response depending on mimicking type within task ', tasks[i],' p = ',round(get_anova_table(res.aov)[[5]],4)))
 
 }
 
