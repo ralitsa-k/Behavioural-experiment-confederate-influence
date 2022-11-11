@@ -2,6 +2,8 @@
 library(tidyverse)
 library(rstatix)
 library(lme4)
+library(ggsignif)
+
 
 `%!in%` = Negate(`%in%`)
 
@@ -114,26 +116,24 @@ afil_questions = afil_recoded %>%
 tasks = unique(afil_questions$task)
 
 for (i in 1:7){
-i = 4
 afil_questions2 = afil_recoded %>%
   inner_join(groups_long) %>%
   mutate(question = as.numeric(as.factor(task))) %>%
   filter(task == tasks[i]) %>%
   filter(type != 'control')
 
-m3 = aov(data = afil_questions2, Resp ~ type)
-summary(m3)
+#m3 = aov(data = afil_questions2, Resp ~ type + Error(id))
+#summary(m3)
 res.aov <- anova_test(data = afil_questions2, dv = Resp, wid = id, within = type)
 get_anova_table(res.aov)
 
 print(paste0('Test of response depending on mimicking type within task ', tasks[i],' p = ',round(get_anova_table(res.aov)[[5]],4)))
-
 }
 
 ggplot(afil_questions,aes(x = task, y = Resp, fill = type))+
   geom_boxplot()
 ggplot(afil_questions,aes(x = task, y = response, fill = type))+
-  geom_boxplot()
+  geom_boxplot() 
 
 
 # connection/closeness --------------------------------
@@ -143,7 +143,8 @@ dat_close <- read_csv('dat_closeness.csv') %>%
   mutate(block = ifelse(block == 1, 'first', 
                         ifelse(block==2, 'second', 'third'))) %>%
   right_join(groups_long) %>%
-  distinct()
+  distinct() 
+  
 
 dat_close %>%
   ggplot(aes(x = type, y = response)) +

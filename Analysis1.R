@@ -78,7 +78,7 @@ no_car <- bi_dat_by_group %>%
   filter(!grepl('car', question)) 
 
 questions_bi = no_car %>% 
-  select(question)  %>%
+  dplyr::select(question)  %>%
   distinct() 
   
   
@@ -140,22 +140,22 @@ summary(log_reg)
 
 # Chronbach's alpha All together --------------------
 chr <- bi_dat_by_group %>%
-  select(id, question, type) %>%
+  dplyr::select(id, question, type) %>%
   mutate(type = as.numeric(as.factor(type))) %>%
   distinct() %>%
   spread(question,type) %>%
-  select(-id) 
+  dplyr::select(-id) 
 
 cronbach.alpha(chr)
 
 # Chronbach's alpha warmth --------------------
 chr <- bi_dat_by_group %>%
   filter(Type_of_question == 'warmth') %>%
-  select(id, question, type) %>%
+  dplyr::select(id, question, type) %>%
   mutate(type = as.numeric(as.factor(type))) %>%
   distinct() %>%
   spread(question,type) %>%
-  select(-id) 
+  dplyr::select(-id) 
 
 cronbach.alpha(chr)
 
@@ -163,12 +163,12 @@ cronbach.alpha(chr)
 
 chr <- bi_dat_by_group %>%
   filter(Type_of_question == 'competence') %>%
-  select(id, question, type) %>%
+  dplyr::select(id, question, type) %>%
   mutate(type = as.numeric(as.factor(type))) %>%
   distinct() %>%
   spread(question,type) %>%
-  select(-id) %>%
-  select(-contains('car'))
+  dplyr::select(-id) %>%
+  dplyr::select(-contains('car'))
 
 cronbach.alpha(chr)
 
@@ -252,7 +252,7 @@ chisq2 <- chisq.test(dat_id_conf$type_mimick,dat_id_conf$response)
 chisq2
 
 # Number of Participants per group
-dat_id_conf %>% select(id, group) %>% distinct %>% count(group)
+dat_id_conf %>% dplyr::select(id, group) %>% distinct %>% count(group)
 
 # number of times 
 check_conf_times =dat_id_conf %>%
