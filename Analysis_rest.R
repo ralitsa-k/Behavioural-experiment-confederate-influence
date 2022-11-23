@@ -143,7 +143,8 @@ dat_close <- read_csv('dat_closeness.csv') %>%
   mutate(block = ifelse(block == 1, 'first', 
                         ifelse(block==2, 'second', 'third'))) %>%
   right_join(groups_long) %>%
-  distinct() 
+  distinct() %>%
+  mutate(response = (response/7)*100)
   
 
 dat_close %>%
