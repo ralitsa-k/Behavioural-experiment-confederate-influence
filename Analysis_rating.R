@@ -239,6 +239,13 @@ ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
   labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type') +
   theme_minimal()
 
+ggplot(exp_means, aes(fill = factor(Type_of_question, levels = c('warmth', 'competence')), x = factor(type, levels = c('choice', 'control', 'motor')), y = change_in_rating)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c(colors_a[1], colors_a[2])) +
+  labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type', fill = 'Type_of_q') +
+  theme_minimal() 
+  
+
 exp_means <- exp_means %>%
   mutate(type = as.factor(type))
 
