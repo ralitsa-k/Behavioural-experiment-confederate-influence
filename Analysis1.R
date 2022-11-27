@@ -63,12 +63,14 @@ sum_by_id = bi_dat_by_group %>% group_by(id,Type_of_question) %>% count(type) %>
 bi_dat_by_group %>% group_by(Type_of_question) %>% count(type) %>%
   mutate(sum_n = sum(n), perc = 100*(n/sum_n)) %>%
   
-  ggplot(aes(x = Type_of_question, y = perc, fill = type)) +
+  ggplot(aes(x = factor(Type_of_question, levels = c('warmth', 'competence')), y = perc, fill = type)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = colors_a) +
   labs(x = 'Question category', y = 'Percent chosen') +
-  ggtitle('Bin=ary questions. Percentage of times each mimicker was chosen') +
-  theme_minimal()
+  ggtitle('Binary questions. Percentage of times each mimicker was chosen') +
+  theme_minimal() +
+  geom_text(aes(label = round(perc)), size = 3, hjust = 0, vjust = 4, position ="stack") 
+  
 
 write.csv(bi_dat_by_group, 'bi_dat_by_group.csv')
 write.csv(sum_by_id, 'liking_triple_questions.csv')
@@ -197,7 +199,7 @@ ggplot(bi_dat_8, aes(x = question, y = perc, fill = type)) +
   scale_fill_manual(values = colors_a) +
   theme(axis.text.x = element_text(angle = 10)) +
   facet_grid(rows = vars(Type_of_question), scales = "free_y", switch = "y", space = "free_y")  +
-  geom_text(aes(y = 100-label_y, label = round(perc)), vjust = 1.5, colour = "white") +
+  geom_text(aes(y = 100-label_y, label = round(perc,2)), size =4, vjust = 1.5, colour = "black") +
   coord_flip()
 
 

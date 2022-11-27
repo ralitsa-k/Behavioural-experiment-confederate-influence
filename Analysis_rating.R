@@ -155,43 +155,6 @@ liking_tripple_and_rating <- liking_triple %>%
 
 
 
-# Rating and liking tripple cronbachs alpha ---------------------
-
-liking_tripple_and_rating <- liking_triple %>%
-  group_by(id, type) %>%
-  summarise(mean_liking_tripple = mean(perc)) %>%
-  full_join(composite_rating_questions_scores, by = c("id", 'type')) %>%
-  mutate(mean_liking_tripple = ifelse(is.na(mean_liking_tripple) & !is.na(mean_rating), 1, mean_liking_tripple)) %>%
-  na.omit() %>%
-  mutate(mean_liking_tripple = (mean_liking_tripple/100)*5)
-
-cronbachs_liking = liking_tripple_and_rating %>%
-  pivot_longer(3:4) %>%
-  mutate(liking_by_mimicking = paste0(type, name)) %>%
-  na.omit() %>%
-  dplyr::select(id, liking_by_mimicking, value) %>%
-  pivot_wider(names_from = liking_by_mimicking, values_from = value) %>%
-  ungroup() %>%
-  dplyr::select(-id)
-
-cronbach(cronbachs_liking)
-
-cronbachs_liking %>%
-  ggplot(aes(choicemean_liking_tripple, y = choicemean_rating)) +
-  geom_point() +
-  geom_smooth(method = 'lm') 
-
-cronbachs_liking %>%
-  ggplot(aes(controlmean_liking_tripple, y = controlmean_rating)) +
-  geom_point() +
-  geom_smooth(method = 'lm') 
-
-cronbachs_liking %>%
-  ggplot(aes(motormean_liking_tripple, y = motormean_rating)) +
-  geom_point() +
-  geom_smooth(method = 'lm') 
-
-
 
 # Add baseline --------------------------
 
@@ -238,6 +201,13 @@ ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
   scale_fill_manual(values = colors_a[1:2]) +
   labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type') +
   theme_minimal()
+
+ggplot(exp_means, aes(fill = factor(Type_of_question, levels = c('warmth', 'competence')), x = factor(type, levels = c('choice', 'control', 'motor')), y = change_in_rating)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c(colors_a[1], colors_a[2])) +
+  labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type', fill = 'Type_of_q') +
+  theme_minimal() 
+  
 
 exp_means <- exp_means %>%
   mutate(type = as.factor(type))

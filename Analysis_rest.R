@@ -12,7 +12,7 @@ colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 groups = read_csv('groups.csv', col_names = TRUE) %>% dplyr::select(-1,-2)
 groups_long = groups %>%
   dplyr::select(id, first, second, third) %>%
-  pivot_longer(2:4, names_to = 'block', values_to = 'type')
+  pivot_longer(2:4, names_to = 'block', values_to = 'type') 
 
 
 # Affective state --------------------------
@@ -27,8 +27,10 @@ dat_affect <- read_csv('dat_affect.csv') %>%
   rename('score' = 'response')
 
 dat_affect_soc = dat_affect %>%
-  inner_join(groups_long) %>%
-  filter(id != 'p1el4un1')
+  mutate(response = block) %>%
+  full_join(groups_long) %>%
+  mutate(score = ifelse(score == 0, 31, score)) %>%
+  na.omit()
   
 
 ggplot(dat_affect_soc, aes(x = type, y = score)) +
@@ -39,22 +41,27 @@ ggplot(dat_affect_soc, aes(x = block, y = score, fill = type)) +
   geom_boxplot()
 
 dat_model = dat_affect_soc %>%
-  dplyr::select(-block) %>%
-  distinct()
+  dplyr::select( -block) %>%
+  ungroup() %>%
+  unique()
   
 dat_affect_soc %>%
   ggplot(aes(x= type, y = score))+ geom_boxplot()
 
-res.aov <- anova_test(data = dat_affect_soc, dv = score, wid = id, within = type)
+m_aff <- aov(data = dat_model, score ~ type + Error(id/type))
+summary(m_aff)
+
+res.aov <- anova_test(data = dat_model, dv = score, wid = id, within = type)
 get_anova_table(res.aov)
 
-pwc <- dat_affect_soc %>%
+pwc <- dat_model %>%
   pairwise_t_test(
     score ~ type, paired = TRUE,
     p.adjust.method = "bonferroni"
   )
 
 pwc
+
 
 
 
@@ -74,6 +81,7 @@ r_sc <- paste(rev_sc, collapse="|")
 
 afil_recoded <- dat_affil %>%
   mutate(Resp = ifelse(str_detect(task, r_sc),100-response, response))
+
 
 
 # add confederate type by block and get average per block
@@ -108,15 +116,17 @@ pwc2
 
 
 # Affiliation separate quesitons ----------------------
-afil_questions = afil_recoded %>%
-  inner_join(groups_long) %>%
+afil_questions = groups_long %>%
+  rename('block' = 'response') %>%
+  full_join(afil_recoded) %>%
   mutate(question = as.numeric(as.factor(task)))
 
 tasks = unique(afil_questions$task)
 
 for (i in 1:7){
-afil_questions2 = afil_recoded %>%
-  inner_join(groups_long) %>%
+afil_questions2 = groups_long %>%
+  rename('block' = 'response') %>%
+  full_join(afil_recoded) %>%
   mutate(question = as.numeric(as.factor(task))) %>%
   filter(task == tasks[i]) %>%
   filter(type != 'control')
@@ -142,7 +152,8 @@ dat_close <- read_csv('dat_closeness.csv') %>%
   mutate(block = ifelse(block == 1, 'first', 
                         ifelse(block==2, 'second', 'third'))) %>%
   right_join(groups_long) %>%
-  distinct() 
+  distinct() %>%
+  mutate(response = (response/7)*100)
   
 
 dat_close %>%
