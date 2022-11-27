@@ -28,7 +28,7 @@ dat_affect <- read_csv('dat_affect.csv') %>%
 
 dat_affect_soc = dat_affect %>%
   inner_join(groups_long) %>%
-  mutate(score = ifelse(score == 0, 31, score))
+  filter(id != 'p1el4un1')
   
 
 ggplot(dat_affect_soc, aes(x = type, y = score)) +
@@ -74,7 +74,6 @@ r_sc <- paste(rev_sc, collapse="|")
 
 afil_recoded <- dat_affil %>%
   mutate(Resp = ifelse(str_detect(task, r_sc),100-response, response))
-
 
 
 # add confederate type by block and get average per block
