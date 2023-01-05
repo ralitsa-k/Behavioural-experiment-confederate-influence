@@ -117,7 +117,7 @@ pwc2
 
 # Affiliation separate quesitons ----------------------
 afil_questions = groups_long %>%
-  rename('block' = 'response') %>%
+ # rename('block' = 'response') %>%
   full_join(afil_recoded) %>%
   mutate(question = as.numeric(as.factor(task)))
 
@@ -125,7 +125,7 @@ tasks = unique(afil_questions$task)
 
 for (i in 1:7){
 afil_questions2 = groups_long %>%
-  rename('block' = 'response') %>%
+  #rename('block' = 'response') %>%
   full_join(afil_recoded) %>%
   mutate(question = as.numeric(as.factor(task))) %>%
   filter(task == tasks[i]) %>%
@@ -469,7 +469,9 @@ liking_art <- dat_art_indiff %>%
   summarise(mean_art= mean(Response)) %>%
   full_join(liking_triple, by = 'id') %>%
   group_by(id, mean_art, type) %>%
-  summarise(mean_liking = mean(perc))
+  summarise(mean_liking = mean(perc)) %>%
+  ungroup() %>%
+  na.omit()
 
 # Tripple questions PLOT
 liking_art %>%
@@ -480,7 +482,11 @@ ggplot(aes(x = mean_art, mean_liking)) +
   facet_grid(~type)
 
 ## Liking influenced by art interest (tripple questions) -----------------------
-summary(lm(data = liking_art, mean_liking ~ mean_art*type))
+
+art.aov <- anova_test(data = liking_art, dv = mean_liking, wid = id, within = type, between = mean_art)
+get_anova_table(art.aov)
+
+
 
 
 ## ART on Rating questions -----------------------
