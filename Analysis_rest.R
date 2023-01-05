@@ -521,6 +521,110 @@ summary(lm(data = rating_questions_scores, mean_rating ~ full_score*type*Type_of
 
 
 
+library(tidyverse)
+library(lme4)
+
+colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
+
+groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2)
+groups_long = groups %>%
+  dplyr::select(id, first, second, third) %>%
+  pivot_longer(2:4, names_to = 'block', values_to = 'type')
+
+
+# Load rapport data  ----------------
+dat_rapport = read_csv('rap_data.csv')
+
+dat_rapport2 = dat_rapport %>%
+  dplyr::select('Participant_Public_ID','Question_Key','Response')
+colnames(dat_rapport2) <- c('id', 'question', 'response')
+
+dat_rapport3 <- dat_rapport2 %>%
+  mutate(response = as.numeric(response)) %>%
+  filter(response < 101) %>%
+  separate(question, into = c('question', 'block'), -1) %>%
+  mutate(block = ifelse(block == 1, 'first',
+                        ifelse(block == 2, 'second', 'third'))) %>%
+  mutate(Type_of_question = ifelse(str_detect(question, 'understanding'), 'understanding',
+                                   ifelse(str_detect(question, 'connection'), 'connection',
+                                          ifelse(str_detect(question, 'established'), 'established', 0)))) %>%
+  full_join(groups_long) %>%
+  na.omit() %>%
+  dplyr::rename('Mimicker' = 'type') %>%
+  distinct() %>%
+  filter(response > 3)
+
+write.csv(dat_rapport3, 'tidy_rapport.csv')
+
+## Plot ------------------------
+dat_rapport3 %>% 
+  ggplot(aes(x = Mimicker, y = response, fill = Type_of_question)) +
+  geom_boxplot() +
+  scale_fill_manual(values=colors_a) +
+  labs(y = 'Response', title = 'Means for rapport for each mimick type') +
+  theme_minimal() 
+
+dat_rapport3 %>% 
+  ggplot(aes(x = Mimicker, y = response)) +
+  geom_boxplot() +
+  scale_fill_manual(values=colors_a) +
+  labs(y = 'Response', title = 'Means for rapport for each mimick type') +
+  theme_minimal()
+
+mod_rapport_3 <- dat_rapport3 %>%
+  group_by(id, Mimicker) %>%
+  summarise(mean_resp = mean(response)) %>%
+  ungroup() %>%
+  filter(id != 'p1el4un1')
+
+## analysis with type of question -----------------------
+res.aov <- anova_test(data = mod_rapport_3, dv = mean_resp, within = Mimicker, wid = id)
+get_anova_table(res.aov)
+
+pwc <- mod_rapport_3 %>%
+  pairwise_t_test(
+    mean_resp ~ Mimicker, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwc
+# diagnostics are fine for this model check with:  plot(mod1)
+
+# analysis without type of question
+mod2 <- lm(data = dat_rapport3, response ~ Mimicker)
+summary(mod2)
+
+
+## blocks by order, rapport ?  ----------------------------
+
+
+dat_rapport3 %>% 
+  ggplot(aes(x = block, y = response, fill = Type_of_question)) +
+  geom_boxplot() +
+  scale_fill_manual(values=colors_a) +
+  labs(y = 'Response', title = 'Means for rapport for each mimick type') +
+  theme_minimal()
+
+mod3 <- lm(data = dat_rapport3, response ~ block * Type_of_question )
+summary(mod3)
+# Third block is significantly different from the first one, higher rapport in third block 
+
+dat_rapport3 %>%
+  filter(block != 'third') %>%
+  ggplot(aes(x = block, y = response, fill = Mimicker)) +
+  geom_boxplot() +
+  scale_fill_manual(values=colors_a) +
+  labs(y = 'Response', title = 'Means for rapport for each mimick type') +
+  theme_minimal()
+
+dat_rapport_blocks = dat_rapport3 %>%
+  filter(block != 'third')
+
+mod3 <- lm(data = dat_rapport_blocks, response ~ block * Mimicker )
+summary(mod3)
+
+
+
+
 
 # Affiliation, Rapport, Closeness, Rating questions -----------------------
 # cronbachs 
