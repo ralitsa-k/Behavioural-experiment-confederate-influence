@@ -321,6 +321,7 @@ dat_idiff <- read_csv('dat_IDiff.csv') %>%
 
 iri_scoring <- read_csv('iri_scoring.csv', col_names = TRUE)
 sias_scoring <- read_csv('SIAS_scoring.csv',col_names = TRUE)
+
 # Sias ------
 dat_idiff_sias <-read_csv('dat_IDiff.csv') %>%
   filter(grepl('SIAS', Question_Key)) %>%
@@ -339,8 +340,27 @@ dat_sias = dat_idiff_sias %>%
 sias_bi_liking = bi_dat_by_group %>%
   full_join(dat_sias)
 
+sias_bi_liking %>%
+  na.omit() %>% 
+ggplot(aes(x = factor(type), y = mean_score, fill = Type_of_question)) +
+  geom_boxplot() + 
+  geom_jitter(alpha = 0.3)
+
 log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = sias_bi_liking, family = 'binomial')
 summary(log_reg)
+
+## SIAS for motor condition only ------------------
+sias_motor <- sias_bi_liking %>%
+  filter(type == 'motor')
+log_reg <- lm(mean_score ~ Type_of_question, data = sias_motor)
+summary(log_reg)
+
+sias_motor <- sias_bi_liking %>%
+  filter(type == 'control')
+log_reg <- lm(mean_score ~ Type_of_question, data = sias_motor)
+summary(log_reg)
+
+
 
 # IRI --------------
 dat_idiff_iri <-read_csv('dat_IDiff.csv') %>%
@@ -363,6 +383,11 @@ iri_bi_liking = bi_dat_by_group %>%
 log_reg <- glmer(factor(type) ~ Type_of_question * mean_score + (1|id), data = iri_bi_liking, family = 'binomial')
 summary(log_reg)
 
+iri_bi_liking %>%
+  na.omit() %>% 
+  ggplot(aes(x = factor(type), y = mean_score, fill = Type_of_question)) +
+  geom_boxplot() + 
+  geom_jitter(alpha = 0.3)
 
 
 # SC scores ---------------
@@ -397,6 +422,8 @@ counts_d <- dat_sc_liking %>%
 ggplot(counts_d, aes(x = mean_score, y = perc_chosen, color = type)) +
   geom_point() +
   geom_smooth(method = 'lm')
+
+
 
 # higher interdependence 
 
@@ -485,6 +512,85 @@ ggplot(aes(x = mean_art, mean_liking)) +
 
 art.aov <- anova_test(data = liking_art, dv = mean_liking, wid = id, within = type, between = mean_art)
 get_anova_table(art.aov)
+
+
+
+## Art interest ------------
+
+# Art separate 3 questions
+liking_art <- dat_art_indiff %>%
+  mutate(id = Participant_Public_ID) %>%
+  filter(Question_Key == 'art_interest') %>%
+  group_by(id) %>%
+  summarise(mean_art= mean(Response)) %>%
+  full_join(liking_triple, by = 'id') %>%
+  group_by(id, mean_art, type) %>%
+  summarise(mean_liking = mean(perc)) %>%
+  ungroup() %>%
+  na.omit()
+
+# Tripple questions PLOT
+liking_art %>%
+  na.omit() %>%
+  ggplot(aes(x = mean_art, mean_liking)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_grid(~type)
+
+art.aov <- anova_test(data = liking_art, dv = mean_liking, wid = id, within = type, between = mean_art)
+get_anova_table(art.aov)
+
+# Art interest no interaction 
+
+## Art knowledge  -----------------------
+
+liking_art <- dat_art_indiff %>%
+  mutate(id = Participant_Public_ID) %>%
+  filter(Question_Key == 'art_knowledge') %>%
+  group_by(id) %>%
+  summarise(mean_art= mean(Response)) %>%
+  full_join(liking_triple, by = 'id') %>%
+  group_by(id, mean_art, type) %>%
+  summarise(mean_liking = mean(perc)) %>%
+  ungroup() %>%
+  na.omit()
+
+# Tripple questions PLOT
+liking_art %>%
+  na.omit() %>%
+  ggplot(aes(x = mean_art, mean_liking)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_grid(~type)
+
+art.aov <- anova_test(data = liking_art, dv = mean_liking, wid = id, within = type, between = mean_art)
+get_anova_table(art.aov)
+
+
+## Art visit -----------------------
+
+liking_art <- dat_art_indiff %>%
+  mutate(id = Participant_Public_ID) %>%
+  filter(Question_Key == 'art_visits') %>%
+  group_by(id) %>%
+  summarise(mean_art= mean(Response)) %>%
+  full_join(liking_triple, by = 'id') %>%
+  group_by(id, mean_art, type) %>%
+  summarise(mean_liking = mean(perc)) %>%
+  ungroup() %>%
+  na.omit()
+
+# Tripple questions PLOT
+liking_art %>%
+  na.omit() %>%
+  ggplot(aes(x = mean_art, mean_liking)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_grid(~type)
+
+art.aov <- anova_test(data = liking_art, dv = mean_liking, wid = id, within = type, between = mean_art)
+get_anova_table(art.aov)
+
 
 
 

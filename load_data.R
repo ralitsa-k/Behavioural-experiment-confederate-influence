@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(plyr)
+library(Hmisc)
 
 
 read_data <- function(pattern) {
@@ -71,7 +72,35 @@ dat_rating <- dat_rating2 %>%
 write.csv(dat_rating, 'ratings_data.csv')
 
 
+# Load demographics ---------------
+questionnaire-cppy
+pattern <- c('cppy')
+dat_demographics <- read_data(pattern)
+dat_demo <- dat_demographics %>%
+  dplyr::select(Participant_Public_ID, Question_Key, Response) %>%
+  filter(Question_Key %in% c('mother_tongue', 'age', 'Sex')) %>%
+  distinct() %>%
+  pivot_wider(names_from = Question_Key, values_from = Response) %>%
+  mutate(id = Participant_Public_ID)
 
+groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2) 
+
+dat_demo_included <- dat_demo %>%
+  right_join(groups)
+
+
+dat_demo_included %>%
+  group_by(Sex) %>%
+  count()
+# 34 females, 11 male, 1 non-binary
+
+mean(as.numeric(dat_demo_included$age))  # 24.67
+sd(as.numeric(dat_demo_included$age))    # 4.62
+
+min(as.numeric(dat_demo_included$age))   # 19
+max(as.numeric(dat_demo_included$age))   # 44
+
+# 16 English native, 12 chinese 
 
 
 # Load rapport ----------------------

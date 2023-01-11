@@ -83,6 +83,9 @@ questions_bi = no_car %>%
   dplyr::select(question)  %>%
   distinct() 
   
+
+groups$id
+
   
 #model3 <- glm(data = no_car, type ~ Type_of_question, family = 'binomial')
 #summary(model3)
