@@ -73,9 +73,12 @@ write.csv(dat_rating, 'ratings_data.csv')
 
 
 # Load demographics ---------------
-questionnaire-cppy
+
 pattern <- c('cppy')
 dat_demographics <- read_data(pattern)
+
+write.csv(dat_demographics, 'C:/Users/ralitsaa/OneDrive - University of Glasgow/Work/Paula/Exp2/demographics_cppy.csv')
+
 dat_demo <- dat_demographics %>%
   dplyr::select(Participant_Public_ID, Question_Key, Response) %>%
   filter(Question_Key %in% c('mother_tongue', 'age', 'Sex')) %>%
