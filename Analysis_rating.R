@@ -2,6 +2,7 @@
 library(tidyverse)
 library(psy)
 library(lme4)
+library(ggsignif)
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 
 groups = read_csv('groups.csv', col_names = TRUE) %>%dplyr::select(-1,-2)
@@ -91,6 +92,24 @@ gg = ggplot(ratings_by_group_fr, aes(type, rating))+
                round(summary(mod_Fr)[[1]][['Pr(>F)']][1],4)))
 print(gg)
 }
+
+
+
+# Rating full scale -------------------
+ratings_by_group_full <- ratings_by_group %>%
+  distinct() %>%
+  group_by(id, type, Type_of_question, block) %>%
+  summarise(mean_rating = mean(rating)) %>%
+  pivot_wider(names_from = type, values_from = mean_rating) %>%
+  select(-block) %>%
+  fill(.)
+
+mod_Fr <- aov(data = ratings_by_group_full, rating~type * Type_of_question + Error(ID))
+summary(mod_Fr)
+
+TukeyHSD(mod_Fr)
+
+summary(mod_Fr)
 
 # Ratings questions chronbach alpha -------------------
 chr_d <- ratings_by_group %>%
@@ -202,18 +221,48 @@ ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
   labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type') +
   theme_minimal()
 
+# plot for ratings -----------------------
 ggplot(exp_means, aes(fill = factor(Type_of_question, levels = c('warmth', 'competence')), x = factor(type, levels = c('choice', 'control', 'motor')), y = change_in_rating)) +
   geom_boxplot() +
   scale_fill_manual(values = c(colors_a[1], colors_a[2])) +
   labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type', fill = 'Type_of_q') +
-  theme_minimal() 
+  theme_minimal() +
+  geom_signif(
+    comparisons = list(c("motor", "control")),
+    map_signif_level = TRUE
+  ) +
+  geom_signif(
+    comparisons = list(c("choice", "control")),
+    map_signif_level = TRUE
+  ) +
+  geom_signif(
+    comparisons = list(c("choice", "motor")),
+    map_signif_level = TRUE, y_position = c(3, 1.5, 2.8)
+  )
   
+
+res.aov <- anova_test(data = exp_means, dv = change_in_rating, within = c(type, Type_of_question), wid = id)
+get_anova_table(res.aov)
+
+pwc <- exp_means %>%
+  pairwise_t_test(
+    change_in_rating ~ type * Type_of_question, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwc
+
+pwc <- exp_means %>% 
+  group_by(Type_of_question) %>%
+  emmeans_test(change_in_rating ~ type, p.adjust.method = "bonferroni") 
+pwc
+
 
 exp_means <- exp_means %>%
   mutate(type = as.factor(type))
 
 exp_means <- within(exp_means, type <- relevel(type, ref = 'motor'))
 
+## Rating full scale--------------------
 mod2 <- lm(data = exp_means, change_in_rating ~ type * Type_of_question)
 summary(mod2)
 
@@ -222,11 +271,6 @@ write.csv(exp_means, 'rating_questions_scores.csv')
 # change from baseline differs between control and choice 
 # (higher score in choice - ratings increased from baseline in choice more than in control)
 
-
-mod2 <- aov(data = exp_means, change_in_rating ~ type * Type_of_question)
-summary(mod2)
-
-TukeyHSD(mod2)
 
 
 # Pointplot of means only

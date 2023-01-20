@@ -55,6 +55,7 @@ res.aov <- anova_test(data = dat_model, dv = score, wid = id, within = type)
 get_anova_table(res.aov)
 
 pwc <- dat_model %>%
+  distinct() %>%
   pairwise_t_test(
     score ~ type, paired = TRUE,
     p.adjust.method = "bonferroni"
@@ -62,7 +63,8 @@ pwc <- dat_model %>%
 
 pwc
 
-
+dat_model %>%
+  group_by(type) %>% summarise(mean(score), sd(score))
 
 
 # attributes/affiliation -----------------------
@@ -104,8 +106,8 @@ ggplot(dat_afil_soc, aes(x = block, y = Resp)) +
 ggplot(dat_afil_soc, aes(x = block, y = Resp, fill = type)) +
   geom_boxplot()
 
-res.aov2 <- anova_test(data = dat_afil_soc, dv = Resp, wid = id, within = type)
-get_anova_table(res.aov2)
+res.aov2 <- aov(data = dat_afil_soc, Resp ~ type + Error(id))
+summary(res.aov2)
 
 pwc2 <- dat_afil_soc %>%
   pairwise_t_test(
@@ -113,6 +115,10 @@ pwc2 <- dat_afil_soc %>%
     p.adjust.method = "bonferroni"
   )
 pwc2
+
+dat_afil_soc %>%
+  group_by(type) %>%
+  summarise(mean(Resp), sd(Resp))
 
 
 # Affiliation separate quesitons ----------------------
@@ -151,6 +157,7 @@ dat_close <- read_csv('dat_closeness.csv') %>%
   rename('id' = 'Participant_Public_ID') %>%
   mutate(block = ifelse(block == 1, 'first', 
                         ifelse(block==2, 'second', 'third'))) %>%
+
   right_join(groups_long) %>%
   distinct() %>%
   mutate(response = (response/7)*100)
@@ -161,8 +168,12 @@ dat_close %>%
   geom_boxplot() +
   geom_jitter(alpha = 0.2)
 
-res.aov3 <- anova_test(data = dat_close, dv = response, wid = id, within = type)
-get_anova_table(res.aov3)
+res.aov3 <- aov(data = dat_close, response ~ type + Error(id))
+summary(res.aov3)
+
+dat_close %>%
+  group_by(type) %>%
+  summarise(mean(response), sd(response))
 
 pwc3 <- dat_close %>%
   pairwise_t_test(
@@ -291,6 +302,32 @@ dat_maze_resp = dat_maze %>%
 
 mod_maze = glm(data = dat_maze_resp, chose_hint ~ type, family = 'binomial')
 summary(mod_maze)
+
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+logit2prob(0.2613)
+
+chisq <- chisq.test(dat_maze_resp$type,dat_maze_resp$chose_hint)
+chisq
+dat_maze_resp %>%
+  group_by(type) %>%
+  count(chose_hint) %>%
+  pivot_wider(names_from = type, values_from = n)
+
+# Effect size ------------
+phi = sqrt(15.382 / 28)
+phi
+
+
+
+library(corrplot)
+corrplot(chisq$residuals, is.cor = FALSE)
+
+
 
 # Out of the trials they chose to play with this person, how many times they followed their hint? 
 #
@@ -684,8 +721,8 @@ mod_rapport_3 <- dat_rapport3 %>%
   filter(id != 'p1el4un1')
 
 ## analysis with type of question -----------------------
-res.aov <- anova_test(data = mod_rapport_3, dv = mean_resp, within = Mimicker, wid = id)
-get_anova_table(res.aov)
+res.aov <- aov(data = mod_rapport_3, mean_resp ~ Mimicker + Error(id))
+summary(res.aov)
 
 pwc <- mod_rapport_3 %>%
   pairwise_t_test(
@@ -694,6 +731,11 @@ pwc <- mod_rapport_3 %>%
   )
 pwc
 # diagnostics are fine for this model check with:  plot(mod1)
+
+mod_rapport_3 %>%
+  group_by(Mimicker) %>%
+  summarise(mean(mean_resp), sd(mean_resp))
+
 
 # analysis without type of question
 mod2 <- lm(data = dat_rapport3, response ~ Mimicker)

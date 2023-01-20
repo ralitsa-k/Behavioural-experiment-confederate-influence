@@ -102,6 +102,9 @@ bi_dat_by_group %>%
 phi = sqrt(15.382 / 28)
 phi
 
+library(corrplot)
+corrplot(chisq$residuals, is.cor = FALSE)
+
 
 chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
 
@@ -119,6 +122,11 @@ bi_dat_by_group %>%
 library(corrplot)
 corrplot(chisq$residuals, is.cor = FALSE)
 
+# Contributions -----------------
+contrib <- 100*chisq$residuals^2/chisq$statistic
+round(contrib, 3)
+
+
 # Multinomial Logistic Regression -----------------------------
 mult_model <- multinom(factor(type) ~ Type_of_question, data = bi_dat_by_group)
 summary(mult_model)
@@ -127,6 +135,7 @@ pred_vals <- data.frame(pr = predict(mult_model, bi_dat_by_group))
 unique(pred_vals$pr)
 
 bi_dat_by_group$type <- relevel(factor(bi_dat_by_group$type), ref = "motor")
+
 mult_model2 <- multinom(factor(type) ~ Type_of_question, data = bi_dat_by_group)
 summary(mult_model2)
 
@@ -138,9 +147,35 @@ pValue_extract <- function(x){
 # choice-motor p = 0.0002, control-motor  p = 0.003
 pValue_extract(mult_model2)
 
-log_reg <- glmer(factor(type) ~ Type_of_question + (1|id), data = bi_dat_by_group, family = 'binomial')
-summary(log_reg)
 
+
+
+bi_dat_by_group$Type_of_question <- relevel(factor(bi_dat_by_group$Type_of_question),
+                                            ref = "warmth")
+
+mult_model2 <- multinom(factor(type) ~ Type_q, data = bi_dat_by_group)
+summary(mult_model2)
+
+pValue_extract <- function(x){
+  z <- summary(x)$coefficients/summary(x)$standard.errors
+  # 2-tailed Wald z tests to test significance of coefficients
+  p <- (1 - pnorm(abs(z), 0, 1)) * 2
+  p }
+# choice-motor p = 0.0002, control-motor  p = 0.003
+pValue_extract(mult_model2)
+
+exp(coef(mult_model2))
+
+odds_ratios <- exp(summary(mult_model2)$coefficients)
+data.frame(t(odds_ratios))
+
+
+# choice more likely to be selected for warmth than motor
+# control more likely to be selected for warmth than motor 
+
+#                     motor   choice  control
+# 1 warmth              42     86      56
+# 2 competence          77     62      45
 
 
 # Chronbach's alpha All together --------------------
@@ -204,6 +239,29 @@ ggplot(bi_dat_8, aes(x = question, y = perc, fill = type)) +
   facet_grid(rows = vars(Type_of_question), scales = "free_y", switch = "y", space = "free_y")  +
   geom_text(aes(y = 100-label_y, label = round(perc,2)), size =4, vjust = 1.5, colour = "black") +
   coord_flip()
+
+
+quest_8 <-bi_dat_by_group %>%
+  separate(question, -10, into = c('question', 'del'))
+chisq <- chisq.test(quest_8$question,quest_8$type)
+chisq
+quest_8 %>%
+  group_by(question) %>%
+  count(type) %>%
+  pivot_wider(names_from = type, values_from = n)
+
+# Effect size ------------
+phi = sqrt(15.382 / 28)
+phi
+
+library(corrplot)
+corrplot(chisq$residuals, is.cor = FALSE)
+
+
+chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
+
+
+
 
 
 # Check order ----------------
