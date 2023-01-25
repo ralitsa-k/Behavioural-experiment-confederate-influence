@@ -106,8 +106,11 @@ ggplot(dat_afil_soc, aes(x = block, y = Resp)) +
 ggplot(dat_afil_soc, aes(x = block, y = Resp, fill = type)) +
   geom_boxplot()
 
-res.aov2 <- aov(data = dat_afil_soc, Resp ~ type + Error(id))
-summary(res.aov2)
+
+res.aov2 <- anova_test(data = dat_afil_soc, dv = Resp, within = type, wid = id)
+get_anova_table(res.aov2)
+
+
 
 pwc2 <- dat_afil_soc %>%
   pairwise_t_test(
@@ -168,8 +171,8 @@ dat_close %>%
   geom_boxplot() +
   geom_jitter(alpha = 0.2)
 
-res.aov3 <- aov(data = dat_close, response ~ type + Error(id))
-summary(res.aov3)
+res.aov <- anova_test(data = dat_close, dv = response, within = c(type), wid = id)
+get_anova_table(res.aov)
 
 dat_close %>%
   group_by(type) %>%
@@ -319,20 +322,12 @@ dat_maze_resp %>%
   pivot_wider(names_from = type, values_from = n)
 
 # Effect size ------------
-phi = sqrt(15.382 / 28)
-phi
-
-
-
 library(corrplot)
-corrplot(chisq$residuals, is.cor = FALSE)
-
+corrplot(chisq$residuals, is.cor = FALSE, col= colorRampPalette(c("white","pink", "red"))(100) )
 
 
 # Out of the trials they chose to play with this person, how many times they followed their hint? 
 #
-
-
 
 hint_plot = dat_maze_resp %>%
   group_by(type,id) %>%
@@ -723,6 +718,9 @@ mod_rapport_3 <- dat_rapport3 %>%
 ## analysis with type of question -----------------------
 res.aov <- aov(data = mod_rapport_3, mean_resp ~ Mimicker + Error(id))
 summary(res.aov)
+
+res.aov <- anova_test(data = mod_rapport_3, dv = mean_resp, within = c(Mimicker), wid = id)
+get_anova_table(res.aov)
 
 pwc <- mod_rapport_3 %>%
   pairwise_t_test(

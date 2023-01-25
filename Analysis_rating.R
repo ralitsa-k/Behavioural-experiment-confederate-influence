@@ -95,22 +95,6 @@ print(gg)
 
 
 
-# Rating full scale -------------------
-ratings_by_group_full <- ratings_by_group %>%
-  distinct() %>%
-  group_by(id, type, Type_of_question, block) %>%
-  summarise(mean_rating = mean(rating)) %>%
-  pivot_wider(names_from = type, values_from = mean_rating) %>%
-  select(-block) %>%
-  fill(.)
-
-mod_Fr <- aov(data = ratings_by_group_full, rating~type * Type_of_question + Error(ID))
-summary(mod_Fr)
-
-TukeyHSD(mod_Fr)
-
-summary(mod_Fr)
-
 # Ratings questions chronbach alpha -------------------
 chr_d <- ratings_by_group %>%
   dplyr::select(id, question, rating) %>%
@@ -243,6 +227,7 @@ ggplot(exp_means, aes(fill = factor(Type_of_question, levels = c('warmth', 'comp
 
 res.aov <- anova_test(data = exp_means, dv = change_in_rating, within = c(type, Type_of_question), wid = id)
 get_anova_table(res.aov)
+
 
 pwc <- exp_means %>%
   pairwise_t_test(

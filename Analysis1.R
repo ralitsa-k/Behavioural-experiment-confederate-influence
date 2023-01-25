@@ -3,8 +3,7 @@ library(lme4)
 require(nnet)
 library("gplots")
 library(ltm)
-require(ltm)
-
+detach(“package:dplyr”)
 
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 bi_dat_by_group = read_csv('bi_dat_by_group.csv')
@@ -103,7 +102,7 @@ phi = sqrt(15.382 / 28)
 phi
 
 library(corrplot)
-corrplot(chisq$residuals, is.cor = FALSE)
+corrplot(chisq$residuals, is.cor = FALSE,  col= colorRampPalette(c("white","pink", "red"))(200))
 
 
 chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
@@ -118,10 +117,6 @@ bi_dat_by_group %>%
   mutate(sum = sum(n)) %>%
   ungroup() %>%
   mutate(prob = (n/sum)*100)
-
-library(corrplot)
-corrplot(chisq$residuals, is.cor = FALSE)
-
 # Contributions -----------------
 contrib <- 100*chisq$residuals^2/chisq$statistic
 round(contrib, 3)
@@ -255,7 +250,7 @@ phi = sqrt(15.382 / 28)
 phi
 
 library(corrplot)
-corrplot(chisq$residuals, is.cor = FALSE)
+corrplot(chisq$residuals, is.cor = FALSE, col= colorRampPalette(c("blue","white", "red"))(200) )
 
 
 chisq <- chisq.test(bi_dat_by_group$Type_of_question,bi_dat_by_group$type)
