@@ -300,11 +300,14 @@ dat_maze_resp = dat_maze %>%
          qid = rep(1:12, times = length(unique(groups$id)))) %>%
 
   select(-Help, - X1) %>%
-  mutate(chose_hint = ifelse(hint == ChooseDoor,1 ,0)) %>%
-  full_join(dat_maze_conf3)
+  mutate(chose_hint = ifelse(hint == ChooseDoor, 1 ,0)) %>%
+  full_join(dat_maze_conf3) %>%
+  mutate(contr = ifelse(type=='motor', 1, 0))
 
-mod_maze = glm(data = dat_maze_resp, chose_hint ~ type, family = 'binomial')
+mod_maze = glm(data = dat_maze_resp, chose_hint ~ contr, family =  binomial(link = "logit"))
 summary(mod_maze)
+
+exp(as.numeric(mod_maze$coefficients[2]))
 
 logit2prob <- function(logit){
   odds <- exp(logit)
@@ -312,7 +315,7 @@ logit2prob <- function(logit){
   return(prob)
 }
 
-logit2prob(0.2613)
+logit2prob(as.numeric(mod_maze$coefficients[2]))
 
 chisq <- chisq.test(dat_maze_resp$type,dat_maze_resp$chose_hint)
 chisq

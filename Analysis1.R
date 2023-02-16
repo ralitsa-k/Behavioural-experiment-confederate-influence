@@ -3,7 +3,6 @@ library(lme4)
 require(nnet)
 library("gplots")
 library(ltm)
-detach(“package:dplyr”)
 
 colors_a = c('#B0D0D3', '#C08497','#F7AF9D')
 bi_dat_by_group = read_csv('bi_dat_by_group.csv')
@@ -320,6 +319,6 @@ check_conf_times =dat_id_conf %>%
 check_conf_times = dat_id_conf %>%
   group_by(order, conf_name) %>%
   count(conf_name)
-
+???
 
 

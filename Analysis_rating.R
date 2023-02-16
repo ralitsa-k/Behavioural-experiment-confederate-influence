@@ -196,7 +196,8 @@ groups_mim = groups_long %>%
 exp_means = ratings_avg %>% filter(confed_name == 99) %>%  ungroup() %>%
   dplyr::select(-confed_name) %>%
   full_join(baseline_mean) %>%
-  mutate(change_in_rating = mean_r - mean_r_base) %>%
+  mutate(change_in_rating = mean_r - mean_r_base,
+         rating_no_baseline = mean_r) %>%
   full_join(groups_mim)
 
 ggplot(exp_means, aes(x = type, y = change_in_rating, fill = Type_of_question))+
@@ -301,5 +302,43 @@ summary(r_model2)
 
 # Histograms to check motor 
 avg_ratings_motor2 = avg_ratings_motor %>% filter(type == 'motor') %>% filter(Type_of_question == 'warmth')
+
+# Analysis no baseline ----------------------------
+ggplot(exp_means, aes(fill = factor(Type_of_question, levels = c('warmth', 'competence')), 
+                      x = factor(type, levels = c('choice', 'control', 'motor')), 
+                      y = mean_r)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c(colors_a[1], colors_a[2])) +
+  labs(y = 'Mean response', title = 'Means for competence or warmth for each mimick type', fill = 'Type_of_q') +
+  theme_minimal() +
+  geom_signif(
+    comparisons = list(c("motor", "control")),
+    map_signif_level = TRUE
+  ) +
+  geom_signif(
+    comparisons = list(c("choice", "control")),
+    map_signif_level = TRUE
+  ) +
+  geom_signif(
+    comparisons = list(c("choice", "motor")),
+    map_signif_level = TRUE, y_position = c(7, 1.5, 2.8)
+  )
+
+
+res.aov <- anova_test(data = exp_means, dv = mean_r, within = c(type, Type_of_question), wid = id)
+get_anova_table(res.aov)
+
+
+pwc <- exp_means %>%
+  pairwise_t_test(
+    mean_r ~ type * Type_of_question, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwc
+
+pwc <- exp_means %>% 
+  group_by(Type_of_question) %>%
+  emmeans_test(mean_r ~ type, p.adjust.method = "bonferroni") 
+pwc
 
 
