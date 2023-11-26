@@ -2,6 +2,8 @@
 ### This is the wrangling of very messy data coming from Gorilla platform and the analysis of an experiment in Psychology with many hypothesis.
 ### The analysis includes multiple linear regression, logistic regression, linear mixed effects models, and correlations. 
 
+#### tidyverse, dplyr, ggplot
+
 **Experiment summary**
 The main gist is that participants were presented with options of fine art images to choose from.
 After the participants chose one of the options they saw a video of someone else making a choice. 
