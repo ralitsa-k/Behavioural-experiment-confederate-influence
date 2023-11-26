@@ -1,4 +1,6 @@
-This is the analysis of an experiment in Psychology with multiple measures. 
+
+### This is the wrangling of very messy data coming from Gorilla platform and te analysis of an experiment in Psychology with many hypothesis.
+### The analysis includes multiple linear regression, logistic regression, linear mixed effects models, and correlations. 
 
 **Experiment summary**
 The main gist is that participants were presented with options of fine art images to choose from.
